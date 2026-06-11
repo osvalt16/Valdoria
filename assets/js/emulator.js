@@ -75,6 +75,20 @@
     return copy.buffer;
   }
 
+  function isBlankSaveBuffer(buffer) {
+    if (!buffer || !buffer.byteLength) return true;
+
+    const bytes = new Uint8Array(buffer);
+    let hasNonZero = false;
+    let hasNonFF = false;
+    for (let i = 0; i < bytes.length; i++) {
+      if (bytes[i] !== 0) hasNonZero = true;
+      if (bytes[i] !== 0xff) hasNonFF = true;
+      if (hasNonZero && hasNonFF) return false;
+    }
+    return true;
+  }
+
   function hasLocalSave() {
     const key = getSaveStorageKey();
     if (!key) return false;
@@ -153,6 +167,12 @@
     const gba = state.gba;
     if (!gba || !gba.rom || !getSaveView()) {
       setSaveStatus("Aucune sauvegarde disponible pour cette ROM.");
+      return false;
+    }
+
+    const buffer = getSaveBufferCopy();
+    if (isBlankSaveBuffer(buffer)) {
+      setSaveStatus("Sauvegarde vide : sauvegarde d'abord depuis le menu du jeu.");
       return false;
     }
 
@@ -250,6 +270,12 @@
     }
 
     const read = readFileAsArrayBuffer(file).then(buffer => {
+      if (isBlankSaveBuffer(buffer)) {
+        setSaveStatus("Ce fichier .sav ne contient pas de partie valide.");
+        setStatus("Sauvegarde .sav vide ou non initialisée.");
+        return null;
+      }
+
       setSaveData(buffer, file.name);
       if (options.restart && state.gba && state.gba.rom) {
         const expected = getSaveView() ? getSaveView().byteLength : 0;
@@ -286,6 +312,10 @@
     const buffer = getSaveBufferCopy();
     if (!buffer) {
       setSaveStatus("Aucune sauvegarde à exporter.");
+      return;
+    }
+    if (isBlankSaveBuffer(buffer)) {
+      setSaveStatus("Export bloqué : sauvegarde d'abord depuis le menu du jeu.");
       return;
     }
 
