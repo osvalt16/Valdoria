@@ -1,0 +1,10 @@
+# JAMAIS de ROM sur GitHub (contenu Nintendo protégé)
+*.gba
+*.gb
+*.gbc
+*.zip
+
+# Sauvegardes d'émulateur
+*.sav
+*.srm
+*.state
