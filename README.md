@@ -8,10 +8,11 @@
 
 1. Ouvre la page : https://osvalt16.github.io/Valdoria/
 2. Entre ton pseudo, clique sur **Choisir ma ROM (.gba)** et sélectionne ta ROM
-3. Le jeu se lance (flèches = croix, Z = A, X = B, Entrée = Start, \ = Select)
-4. Joueur 1 : clique **Créer un salon** et envoie le code à ton ami
-5. Joueur 2 : entre le code et clique **Rejoindre**
-6. Quand vous êtes sur la même map, vous vous voyez dans le jeu !
+3. Optionnel : clique sur **Utiliser une sauvegarde (.sav)** si tu veux charger une sauvegarde existante
+4. Le jeu se lance (flèches = croix, Z = A, X = B, Entrée = Start, \ = Select)
+5. Joueur 1 : clique **Créer un salon** et envoie le code à ton ami
+6. Joueur 2 : entre le code et clique **Rejoindre**
+7. Quand vous êtes sur la même map, vous vous voyez dans le jeu !
 
 ## Comment ça marche
 
@@ -21,6 +22,21 @@
 - Un canvas transparent par-dessus l'écran dessine le fantôme de l'ami à sa position relative
 
 Si la position n'est pas lue (lien "debug" en bas pour vérifier), l'adresse du pointeur peut être ajustée via l'URL : `?sb1=0x03005008`.
+
+## Architecture
+
+Le projet reste une page statique compatible GitHub Pages, sans étape de build.
+
+- `index.html` contient uniquement la structure de la page et les imports
+- `assets/css/main.css` regroupe les styles
+- `assets/js/dom.js` centralise les accès DOM courants
+- `assets/js/state.js` porte l'état partagé de l'application
+- `assets/js/emulator.js` démarre et pilote l'émulateur
+- `assets/js/position.js` lit la position du joueur en mémoire
+- `assets/js/network.js` gère les salons PeerJS et les échanges P2P
+- `assets/js/overlay.js` dessine le fantôme de l'ami
+- `assets/js/debug.js` met à jour le panneau debug
+- `assets/js/app.js` branche les événements UI et la boucle de jeu
 
 ## Mettre en ligne (GitHub Pages)
 
