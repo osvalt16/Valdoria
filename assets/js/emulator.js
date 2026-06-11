@@ -4,6 +4,46 @@
   const { $, setStatus } = window.Valdoria.dom;
   const state = window.Valdoria.state;
 
+  function readFileAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = event => resolve(event.target.result);
+      reader.onerror = () => reject(reader.error || new Error("Lecture impossible."));
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function isSavFile(file) {
+    return !!file && /\.sav$/i.test(file.name);
+  }
+
+  function setSaveData(buffer, name) {
+    state.pendingSave = buffer;
+    state.pendingSaveName = name || "";
+  }
+
+  function applyPendingSave() {
+    if (!state.gba || !state.pendingSave) return false;
+    state.gba.setSavedata(state.pendingSave);
+    return true;
+  }
+
+  function resetWithCurrentSave() {
+    const gba = state.gba;
+    if (!gba || !state.romBuffer || !state.pendingSave) return false;
+
+    const soundEnabled = gba.audio.masterEnable;
+    gba.pause();
+    gba.setRom(state.romBuffer);
+    gba.audio.masterEnable = soundEnabled;
+    applyPendingSave();
+    state.myPos = null;
+    state.friend.visible = false;
+    $("pauseBtn").textContent = "Pause";
+    gba.runStable();
+    return true;
+  }
+
   function bootEmulator(romFile, onReady) {
     const gba = new GameBoyAdvance();
     state.gba = gba;
@@ -31,30 +71,45 @@
       avance();
     };
 
-    gba.loadRomFromFile(romFile, ok => {
+    readFileAsArrayBuffer(romFile).then(async romBuffer => {
+      if (state.pendingSaveRead) await state.pendingSaveRead;
+      state.romBuffer = romBuffer;
+      const ok = gba.setRom(romBuffer);
       if (!ok) { setStatus("Impossible de lire cette ROM."); return; }
-      if (state.pendingSave) gba.loadSavedataFromFile(state.pendingSave);
+      applyPendingSave();
       gba.runStable();
       setStatus("Prêt ! Crée un salon ou rejoins ton ami avec son code.");
       $("hostBtn").disabled = false;
       $("joinBtn").disabled = false;
       if (typeof onReady === "function") onReady();
+    }).catch(error => {
+      console.error("[gba]", error);
+      setStatus("Impossible de lire cette ROM.");
     });
   }
 
-  function setPendingSave(file) {
-    state.pendingSave = file;
-  }
-
-  function loadSaveFile(file) {
-    state.pendingSave = file || null;
+  function loadSaveFile(file, options = {}) {
+    state.pendingSaveRead = null;
     if (!file) return;
+    if (!isSavFile(file)) {
+      setStatus("Choisis un fichier de sauvegarde .sav.");
+      return;
+    }
 
-    const gba = state.gba;
-    if (!gba || !gba.rom) return;
-
-    gba.loadSavedataFromFile(file);
-    setStatus("Sauvegarde chargée. Si tu es déjà en jeu, retourne au menu du jeu pour la relire.");
+    const read = readFileAsArrayBuffer(file).then(buffer => {
+      setSaveData(buffer, file.name);
+      if (options.restart && state.gba && state.gba.rom) {
+        resetWithCurrentSave();
+        setStatus("Sauvegarde .sav chargée. Lance la partie depuis le menu du jeu.");
+      }
+      return buffer;
+    }).catch(error => {
+      console.error("[gba]", error);
+      setStatus("Impossible de lire cette sauvegarde .sav.");
+      return null;
+    });
+    state.pendingSaveRead = read;
+    return read;
   }
 
   function toggleSound() {
@@ -77,7 +132,6 @@
 
   window.Valdoria.emulator = {
     bootEmulator,
-    setPendingSave,
     loadSaveFile,
     toggleSound,
     togglePause,

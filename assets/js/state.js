@@ -4,7 +4,10 @@
   window.Valdoria = window.Valdoria || {};
   window.Valdoria.state = {
     gba: null,
+    romBuffer: null,
     pendingSave: null,
+    pendingSaveName: "",
+    pendingSaveRead: null,
     peer: null,
     conn: null,
     myPos: null,

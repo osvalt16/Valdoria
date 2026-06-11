@@ -7,4 +7,9 @@
 # Sauvegardes d'émulateur
 *.sav
 *.srm
+*.sgm
 *.state
+
+# Fichiers système
+.DS_Store
+Thumbs.db

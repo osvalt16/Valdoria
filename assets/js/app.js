@@ -25,7 +25,7 @@
   });
 
   $("playSavInput").addEventListener("change", e => {
-    emulator.loadSaveFile(e.target.files[0] || null);
+    emulator.loadSaveFile(e.target.files[0] || null, { restart: true });
   });
 
   $("romInput").addEventListener("change", e => {

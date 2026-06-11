@@ -17,6 +17,7 @@
 ## Comment ça marche
 
 - L'émulateur [gbajs2](https://github.com/andychase/gbajs2) fait tourner la ROM en JavaScript
+- Les sauvegardes `.sav` sont lues localement et injectées dans l'émulateur avant le lancement de la ROM
 - La couche multijoueur lit en RAM le pointeur du bloc de sauvegarde (position X/Y + numéro de map du joueur), 8 fois par seconde
 - Les positions s'échangent en P2P (PeerJS / WebRTC), sans serveur de jeu
 - Un canvas transparent par-dessus l'écran dessine le fantôme de l'ami à sa position relative
