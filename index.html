@@ -121,9 +121,28 @@ function bootEmulator(romFile) {
   gba.keypad.eatInput = true;
   gba.logLevel = gba.LOG_ERROR;
   gba.setLogger((level, error) => console.error("[gba]", error));
+
+  // CORRECTIF 1 : le renderer par défaut dépend d'un worker introuvable depuis le CDN
+  // → écran noir permanent. On force le renderer logiciel (tout en JS, sans worker).
+  gba.video.renderPath = new GameBoyAdvanceSoftwareRenderer();
+
   gba.setCanvas($("screen"));
   gba.setBios(biosBin);
   gba.audio.masterEnable = false;
+
+  // CORRECTIF 2 : Rouge Feu appelle IntrWait avec les IRQ masquées ; le BIOS de
+  // remplacement ne les réactive pas → CPU bloqué à 0x1c pour toujours.
+  // On libère les interruptions en attente avant chaque frame, comme le vrai BIOS.
+  const avance = gba.advanceFrame.bind(gba);
+  gba.advanceFrame = function () {
+    if ((gba.cpu.gprs[15] >>> 0) < 0x4000 && gba.cpu.cpsrI) {
+      try {
+        if (gba.mmu.loadU16(0x04000200) & gba.mmu.loadU16(0x04000202))
+          gba.cpu.cpsrI = false;
+      } catch (e) { /* ignore */ }
+    }
+    avance();
+  };
 
   gba.loadRomFromFile(romFile, ok => {
     if (!ok) { setStatus("Impossible de lire cette ROM."); return; }
