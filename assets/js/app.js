@@ -38,6 +38,8 @@
 
   $("soundBtn").addEventListener("click", emulator.toggleSound);
   $("pauseBtn").addEventListener("click", emulator.togglePause);
+  $("localSaveBtn").addEventListener("click", () => emulator.persistCurrentSave());
+  $("localLoadBtn").addEventListener("click", emulator.loadLocalSave);
   $("saveBtn").addEventListener("click", emulator.downloadSave);
   $("hostBtn").addEventListener("click", network.hostRoom);
   $("joinBtn").addEventListener("click", network.joinRoom);

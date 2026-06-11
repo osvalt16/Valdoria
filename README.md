@@ -1,6 +1,6 @@
 # Valdoria — Aventure à deux
 
-Émulateur GBA dans le navigateur + couche multijoueur : chaque joueur charge sa propre ROM (Rouge Feu ou hack basé dessus), et une couche de code lit la position du joueur dans la mémoire du jeu, l'échange en pair-à-pair, et affiche ton ami comme un fantôme bleu directement dans ton écran de jeu quand vous êtes sur la même map.
+Émulateur GBA dans le navigateur + couche multijoueur : chaque joueur charge sa propre ROM (Rouge Feu ou hack basé dessus), et une couche de code lit la position du joueur dans la mémoire du jeu, l'échange en pair-à-pair, et affiche ton ami comme un personnage directement dans ton écran de jeu quand vous êtes sur la même map.
 
 **Important : aucune ROM n'est hébergée ici.** Chaque joueur fournit sa propre ROM, qui reste sur son ordinateur. Ce dépôt ne contient que du code original (émulateur gbajs2 sous licence BSD, chargé depuis un CDN).
 
@@ -10,14 +10,16 @@
 2. Entre ton pseudo, clique sur **Choisir ma ROM (.gba)** et sélectionne ta ROM
 3. Optionnel : clique sur **Utiliser une sauvegarde (.sav)** si tu veux charger une sauvegarde existante
 4. Le jeu se lance (flèches = croix, Z = A, X = B, Entrée = Start, \ = Select)
-5. Joueur 1 : clique **Créer un salon** et envoie le code à ton ami
-6. Joueur 2 : entre le code et clique **Rejoindre**
-7. Quand vous êtes sur la même map, vous vous voyez dans le jeu !
+5. Sauvegarde depuis le menu du jeu : Valdoria remplace automatiquement le slot local de cette ROM dans le navigateur
+6. Joueur 1 : clique **Créer un salon** et envoie le code à ton ami
+7. Joueur 2 : entre le code et clique **Rejoindre**
+8. Quand vous êtes sur la même map, vous vous voyez dans le jeu !
 
 ## Comment ça marche
 
 - L'émulateur [gbajs2](https://github.com/andychase/gbajs2) fait tourner la ROM en JavaScript
 - Les sauvegardes `.sav` sont lues localement et injectées dans l'émulateur avant le lancement de la ROM
+- Quand le jeu écrit sa sauvegarde, Valdoria remplace le slot local unique de cette ROM et permet aussi l'import/export `.sav`
 - La couche multijoueur lit en RAM le pointeur du bloc de sauvegarde (position X/Y + numéro de map du joueur), 8 fois par seconde
 - Les positions s'échangent en P2P (PeerJS / WebRTC), sans serveur de jeu
 - Un canvas transparent par-dessus l'écran dessine un personnage pixel-art original à la position de l'ami

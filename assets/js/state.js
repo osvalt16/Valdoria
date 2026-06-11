@@ -8,6 +8,7 @@
     pendingSave: null,
     pendingSaveName: "",
     pendingSaveRead: null,
+    lastLocalSaveAt: null,
     peer: null,
     conn: null,
     myPos: null,

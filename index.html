@@ -41,8 +41,13 @@
     <div class="panel">
       <button id="soundBtn">🔊 Activer le son</button>
       <button id="pauseBtn">Pause</button>
-      <label class="btn control secondary">Utiliser une sauvegarde<input type="file" id="playSavInput" accept=".sav" hidden></label>
-      <button id="saveBtn">Télécharger ma sauvegarde</button>
+      <div class="save-actions">
+        <button id="localSaveBtn" disabled>Écraser sauvegarde locale</button>
+        <button id="localLoadBtn" disabled>Charger locale</button>
+        <label class="btn control secondary">Importer .sav<input type="file" id="playSavInput" accept=".sav" hidden></label>
+        <button id="saveBtn" disabled>Exporter .sav</button>
+      </div>
+      <p id="saveStatus" class="save-status">Aucune ROM chargée.</p>
       <p class="keys">Clavier : flèches = croix · Z = A · X = B · Entrée = Start · \ = Select · A/S = L/R</p>
       <span id="debugToggle">debug</span>
       <div id="debugPanel"></div>

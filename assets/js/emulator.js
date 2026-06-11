@@ -3,6 +3,7 @@
 
   const { $, setStatus } = window.Valdoria.dom;
   const state = window.Valdoria.state;
+  const SAVE_META_PREFIX = "valdoria.saveMeta.";
 
   function readFileAsArrayBuffer(file) {
     return new Promise((resolve, reject) => {
@@ -17,6 +18,126 @@
     return !!file && /\.sav$/i.test(file.name);
   }
 
+  function formatTime(timestamp) {
+    return new Date(timestamp).toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+  }
+
+  function formatSize(bytes) {
+    if (!bytes) return "0 Ko";
+    return Math.round(bytes / 1024) + " Ko";
+  }
+
+  function setSaveStatus(message) {
+    const panel = $("saveStatus");
+    if (panel) panel.textContent = message;
+  }
+
+  function getCart() {
+    return state.gba && state.gba.mmu ? state.gba.mmu.cart : null;
+  }
+
+  function getCartCode() {
+    const cart = getCart();
+    return cart && cart.code ? cart.code : "";
+  }
+
+  function getCartTitle() {
+    const cart = getCart();
+    return cart && cart.title ? cart.title : "valdoria";
+  }
+
+  function getSaveStorageKey() {
+    const code = getCartCode();
+    if (!state.gba || !code) return "";
+    return state.gba.SYS_ID + "." + code;
+  }
+
+  function getSaveMetaKey() {
+    const code = getCartCode();
+    return code ? SAVE_META_PREFIX + code : "";
+  }
+
+  function getSaveView() {
+    const save = state.gba && state.gba.mmu ? state.gba.mmu.save : null;
+    return save && save.view ? save.view : null;
+  }
+
+  function getSaveBufferCopy() {
+    const view = getSaveView();
+    if (!view) return null;
+    const bytes = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+    const copy = new Uint8Array(bytes.byteLength);
+    copy.set(bytes);
+    return copy.buffer;
+  }
+
+  function hasLocalSave() {
+    const key = getSaveStorageKey();
+    if (!key) return false;
+    try {
+      return !!window.localStorage.getItem(key);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function readLocalSaveMeta() {
+    const key = getSaveMetaKey();
+    if (!key) return null;
+    try {
+      const value = window.localStorage.getItem(key);
+      return value ? JSON.parse(value) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function writeLocalSaveMeta(source) {
+    const key = getSaveMetaKey();
+    const view = getSaveView();
+    if (!key || !view) return;
+    const savedAt = Date.now();
+    state.lastLocalSaveAt = savedAt;
+    try {
+      window.localStorage.setItem(key, JSON.stringify({
+        code: getCartCode(),
+        title: getCartTitle(),
+        source,
+        savedAt,
+        size: view.byteLength
+      }));
+    } catch (e) {
+      console.warn("[save]", e);
+    }
+  }
+
+  function updateSaveControls() {
+    const hasGame = !!(state.gba && state.gba.rom && getSaveView());
+    $("localSaveBtn").disabled = !hasGame;
+    $("saveBtn").disabled = !hasGame;
+    $("localLoadBtn").disabled = !hasGame || !hasLocalSave();
+  }
+
+  function updateInitialSaveStatus(imported) {
+    updateSaveControls();
+    if (imported) {
+      setSaveStatus("Sauvegarde .sav importée. Elle remplace le slot local de cette ROM.");
+      return;
+    }
+
+    if (hasLocalSave()) {
+      const meta = readLocalSaveMeta();
+      const suffix = meta && meta.savedAt ? " à " + formatTime(meta.savedAt) : "";
+      setSaveStatus("Slot local unique chargé" + suffix + ".");
+    } else {
+      setSaveStatus("Aucun slot local pour cette ROM.");
+    }
+  }
+
   function setSaveData(buffer, name) {
     state.pendingSave = buffer;
     state.pendingSaveName = name || "";
@@ -28,7 +149,21 @@
     return true;
   }
 
-  function resetWithCurrentSave() {
+  function persistCurrentSave(message, source = "manual") {
+    const gba = state.gba;
+    if (!gba || !gba.rom || !getSaveView()) {
+      setSaveStatus("Aucune sauvegarde disponible pour cette ROM.");
+      return false;
+    }
+
+    gba.storeSavedata();
+    writeLocalSaveMeta(source);
+    updateSaveControls();
+    setSaveStatus(message || "Sauvegarde locale remplacée à " + formatTime(Date.now()) + ".");
+    return true;
+  }
+
+  function resetWithCurrentSave(options = {}) {
     const gba = state.gba;
     if (!gba || !state.romBuffer || !state.pendingSave) return false;
 
@@ -41,12 +176,27 @@
     state.friend.visible = false;
     $("pauseBtn").textContent = "Pause";
     gba.runStable();
+    if (options.persist !== false)
+      persistCurrentSave("Sauvegarde .sav importée. Elle remplace le slot local de cette ROM.", "import");
+    updateSaveControls();
     return true;
+  }
+
+  function installSaveHooks(gba) {
+    const storeSavedata = gba.storeSavedata.bind(gba);
+    gba.storeSavedata = function () {
+      const result = storeSavedata();
+      writeLocalSaveMeta("auto");
+      updateSaveControls();
+      setSaveStatus("Sauvegarde locale remplacée automatiquement à " + formatTime(Date.now()) + ".");
+      return result;
+    };
   }
 
   function bootEmulator(romFile, onReady) {
     const gba = new GameBoyAdvance();
     state.gba = gba;
+    installSaveHooks(gba);
 
     gba.keypad.eatInput = true;
     gba.logLevel = gba.LOG_ERROR;
@@ -76,8 +226,11 @@
       state.romBuffer = romBuffer;
       const ok = gba.setRom(romBuffer);
       if (!ok) { setStatus("Impossible de lire cette ROM."); return; }
-      applyPendingSave();
+      const imported = applyPendingSave();
+      if (imported)
+        persistCurrentSave("Sauvegarde .sav importée. Elle remplace le slot local de cette ROM.", "import");
       gba.runStable();
+      updateInitialSaveStatus(imported);
       setStatus("Prêt ! Crée un salon ou rejoins ton ami avec son code.");
       $("hostBtn").disabled = false;
       $("joinBtn").disabled = false;
@@ -99,7 +252,10 @@
     const read = readFileAsArrayBuffer(file).then(buffer => {
       setSaveData(buffer, file.name);
       if (options.restart && state.gba && state.gba.rom) {
+        const expected = getSaveView() ? getSaveView().byteLength : 0;
         resetWithCurrentSave();
+        if (expected && expected !== buffer.byteLength)
+          setSaveStatus("Sauvegarde importée (" + formatSize(buffer.byteLength) + "), taille attendue " + formatSize(expected) + ".");
         setStatus("Sauvegarde .sav chargée. Lance la partie depuis le menu du jeu.");
       }
       return buffer;
@@ -127,12 +283,56 @@
   }
 
   function downloadSave() {
-    state.gba.downloadSavedata();
+    const buffer = getSaveBufferCopy();
+    if (!buffer) {
+      setSaveStatus("Aucune sauvegarde à exporter.");
+      return;
+    }
+
+    const name = getCartTitle().replace(/[^a-z0-9_-]+/gi, "_").replace(/^_+|_+$/g, "") || "valdoria";
+    const url = window.URL.createObjectURL(new Blob([buffer], { type: "application/octet-stream" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name + ".sav";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    setSaveStatus("Export .sav généré (" + formatSize(buffer.byteLength) + ").");
+  }
+
+  function loadLocalSave() {
+    const key = getSaveStorageKey();
+    if (!key || !state.gba || !state.gba.rom) {
+      setSaveStatus("Charge une ROM avant de charger une sauvegarde locale.");
+      return;
+    }
+
+    try {
+      const data = window.localStorage.getItem(key);
+      if (!data) {
+        updateSaveControls();
+        setSaveStatus("Aucun slot local pour cette ROM.");
+        return;
+      }
+
+      setSaveData(state.gba.decodeBase64(data), "Sauvegarde locale");
+      resetWithCurrentSave({ persist: false });
+      const meta = readLocalSaveMeta();
+      const suffix = meta && meta.savedAt ? " de " + formatTime(meta.savedAt) : "";
+      setSaveStatus("Slot local unique" + suffix + " chargé.");
+      setStatus("Sauvegarde locale chargée. Lance la partie depuis le menu du jeu.");
+    } catch (error) {
+      console.error("[save]", error);
+      setSaveStatus("Impossible de charger la sauvegarde locale.");
+    }
   }
 
   window.Valdoria.emulator = {
     bootEmulator,
     loadSaveFile,
+    persistCurrentSave,
+    loadLocalSave,
     toggleSound,
     togglePause,
     downloadSave
