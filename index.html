@@ -185,21 +185,55 @@ $("saveBtn").addEventListener("click", () => gba.downloadSavedata());
    Adresses candidates (US/EU) — ajustables via ?sb1=0x... dans l'URL. */
 const urlSb1 = new URLSearchParams(location.search).get("sb1");
 const SB1_CANDIDATES = urlSb1 ? [parseInt(urlSb1, 16)] : [0x03005008, 0x0300500C, 0x03005010];
+let sb1Found = null;        // adresse validée (candidat ou scan)
+let lastScan = 0;
+
+function lirePosA(addr) {
+  const ptr = gba.mmu.load32(addr) >>> 0;
+  if (ptr < 0x02000000 || ptr >= 0x02040000) return null;
+  const x = gba.mmu.loadU16(ptr);
+  const y = gba.mmu.loadU16(ptr + 2);
+  const g = gba.mmu.loadU8(ptr + 4);
+  const m = gba.mmu.loadU8(ptr + 5);
+  if (x < 1 || x > 1500 || y < 1 || y > 1500 || g > 60 || m > 90) return null;
+  return { addr, ptr, x, y, g, m };
+}
+
+/* Scan de secours : cherche dans l'IWRAM deux pointeurs EWRAM consécutifs
+   (gSaveBlock1Ptr et gSaveBlock2Ptr sont voisins dans toutes les versions)
+   dont le premier vise une structure position plausible. */
+function scanSaveBlock() {
+  for (let a = 0x03000000; a < 0x03007FF8; a += 4) {
+    try {
+      const p2 = gba.mmu.load32(a + 4) >>> 0;
+      if (p2 < 0x02000000 || p2 >= 0x02040000) continue;
+      const pos = lirePosA(a);
+      if (pos) return a;
+    } catch (e) { /* zone non mappée */ }
+  }
+  return null;
+}
 
 function readMyPos() {
   if (!gba || !gba.rom) return null;
-  for (const addr of SB1_CANDIDATES) {
-    try {
-      const ptr = gba.mmu.load32(addr) >>> 0;
-      if (ptr < 0x02000000 || ptr >= 0x02040000) continue;
-      const x = gba.mmu.loadU16(ptr);
-      const y = gba.mmu.loadU16(ptr + 2);
-      const g = gba.mmu.loadU8(ptr + 4);
-      const m = gba.mmu.loadU8(ptr + 5);
-      if (x > 1500 || y > 1500) continue;
-      return { addr, ptr, x, y, g, m };
-    } catch (err) { /* zone non mappée : candidat suivant */ }
-  }
+  try {
+    if (sb1Found) {
+      const pos = lirePosA(sb1Found);
+      if (pos) return pos;
+      sb1Found = null;          // l'adresse ne marche plus : on recherchera
+    }
+    for (const addr of SB1_CANDIDATES) {
+      const pos = lirePosA(addr);
+      if (pos) { sb1Found = addr; return pos; }
+    }
+    // candidats KO : scan complet, au plus une fois toutes les 3 s
+    const now = Date.now();
+    if (now - lastScan > 3000) {
+      lastScan = now;
+      const a = scanSaveBlock();
+      if (a) { sb1Found = a; return lirePosA(a); }
+    }
+  } catch (err) { /* lecture impossible pour l'instant */ }
   return null;
 }
 
@@ -298,6 +332,10 @@ function drawOverlay() {
       friend.visible = false;
       $("friendInfo").textContent = "📍 " + friend.name + " explore une autre zone…";
     }
+  } else if (conn && conn.open && !myPos) {
+    $("friendInfo").textContent = "⏳ Recherche de ta position en mémoire… (sois sur la map, en train de marcher)";
+  } else if (conn && conn.open && myPos && !friend.connected) {
+    $("friendInfo").textContent = "⏳ En attente de la position de " + friend.name + "…";
   }
   requestAnimationFrame(drawOverlay);
 }
