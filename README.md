@@ -20,7 +20,7 @@
 - Les sauvegardes `.sav` sont lues localement et injectées dans l'émulateur avant le lancement de la ROM
 - La couche multijoueur lit en RAM le pointeur du bloc de sauvegarde (position X/Y + numéro de map du joueur), 8 fois par seconde
 - Les positions s'échangent en P2P (PeerJS / WebRTC), sans serveur de jeu
-- Un canvas transparent par-dessus l'écran dessine le fantôme de l'ami à sa position relative
+- Un canvas transparent par-dessus l'écran dessine un personnage pixel-art original à la position de l'ami
 
 Si la position n'est pas lue (lien "debug" en bas pour vérifier), l'adresse du pointeur peut être ajustée via l'URL : `?sb1=0x03005008`.
 

@@ -22,11 +22,24 @@
     c.on("data", d => {
       if (d.t === "hello") friend.name = d.name;
       else if (d.t === "pos") {
+        const previousX = friend.lastTx === null ? d.x : friend.tx;
+        const previousY = friend.lastTy === null ? d.y : friend.ty;
+
         friend.connected = true;
+        friend.lastTx = friend.tx;
+        friend.lastTy = friend.ty;
         friend.g = d.g;
         friend.m = d.m;
         friend.tx = d.x;
         friend.ty = d.y;
+
+        if (d.x !== previousX || d.y !== previousY) {
+          if (Math.abs(d.x - previousX) >= Math.abs(d.y - previousY))
+            friend.direction = d.x > previousX ? "right" : "left";
+          else
+            friend.direction = d.y > previousY ? "down" : "up";
+          friend.movingUntil = Date.now() + 300;
+        }
       }
     });
     c.on("close", () => {

@@ -18,9 +18,13 @@
       m: -1,
       tx: 0,
       ty: 0,
+      lastTx: null,
+      lastTy: null,
       dx: 0,
       dy: 0,
-      visible: false
+      visible: false,
+      direction: "down",
+      movingUntil: 0
     }
   };
 })(window);
