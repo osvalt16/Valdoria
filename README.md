@@ -15,12 +15,15 @@
 7. Joueur 2 : entre le code et clique **Rejoindre**
 8. Quand vous êtes sur la même map, vous vous voyez dans le jeu !
 
+Sur mobile, le bouton **Valdoria** ouvre les options de réseau/sauvegarde, et **Menu jeu** envoie la touche Start au jeu. Les contrôles tactiles affichent A/B, L/R, Start/Select et un joystick.
+
 ## Comment ça marche
 
 - L'émulateur [gbajs2](https://github.com/andychase/gbajs2) fait tourner la ROM en JavaScript
 - Les sauvegardes `.sav` sont lues localement et injectées dans l'émulateur avant le lancement de la ROM
 - Quand le jeu écrit sa sauvegarde, Valdoria remplace le slot local unique de cette ROM et permet aussi l'import/export `.sav`
 - Un export `.sav` contient uniquement la sauvegarde faite depuis le menu du jeu, pas un instantané de l'émulateur
+- Les écrans tactiles utilisent une couche de contrôles mobile reliée directement au clavier virtuel GBA
 - La couche multijoueur lit en RAM le pointeur du bloc de sauvegarde (position X/Y + numéro de map du joueur), 8 fois par seconde
 - Les positions s'échangent en P2P (PeerJS / WebRTC), sans serveur de jeu
 - Un canvas transparent par-dessus l'écran dessine un personnage pixel-art original à la position de l'ami

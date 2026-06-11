@@ -33,6 +33,7 @@
     if (!f) return;
     $("setup").style.display = "none";
     $("play").style.display = "block";
+    document.body.classList.add("is-playing");
     emulator.bootEmulator(f, startGameLoop);
   });
 

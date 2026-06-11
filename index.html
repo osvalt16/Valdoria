@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Valdoria — Aventure à deux</title>
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
@@ -23,34 +23,61 @@
   </section>
 
   <section id="play">
+    <div class="mobile-hud" aria-label="Menus mobiles">
+      <button type="button" id="mobileValdoriaBtn">Valdoria</button>
+      <button type="button" id="mobileGameMenuBtn" data-gba-key="START">Menu jeu</button>
+    </div>
+
     <div id="screenWrap">
       <canvas id="screen" width="480" height="320"></canvas>
       <canvas id="overlay" width="480" height="320"></canvas>
     </div>
     <p id="friendInfo"></p>
 
-    <div class="panel">
-      <div>
-        <button id="hostBtn" disabled>Créer un salon</button>
-        <input id="joinCode" placeholder="CODE" maxlength="4">
-        <button id="joinBtn" disabled>Rejoindre</button>
+    <div class="mobile-backdrop" id="mobileBackdrop"></div>
+    <div class="valdoria-options" id="valdoriaOptions">
+      <div class="mobile-drawer-head">
+        <strong>Valdoria</strong>
+        <button type="button" id="closeValdoriaMenu">Fermer</button>
       </div>
-      <p id="netStatus">Chargement du jeu…</p>
+
+      <div class="panel">
+        <div>
+          <button id="hostBtn" disabled>Créer un salon</button>
+          <input id="joinCode" placeholder="CODE" maxlength="4">
+          <button id="joinBtn" disabled>Rejoindre</button>
+        </div>
+        <p id="netStatus">Chargement du jeu…</p>
+      </div>
+
+      <div class="panel">
+        <button id="soundBtn">🔊 Activer le son</button>
+        <button id="pauseBtn">Pause</button>
+        <div class="save-actions">
+          <button id="localSaveBtn" disabled>Écraser sauvegarde locale</button>
+          <button id="localLoadBtn" disabled>Charger locale</button>
+          <label class="btn control secondary">Importer .sav<input type="file" id="playSavInput" accept=".sav" hidden></label>
+          <button id="saveBtn" disabled>Exporter .sav</button>
+        </div>
+        <p id="saveStatus" class="save-status">Aucune ROM chargée.</p>
+        <p class="keys">Clavier : flèches = croix · Z = A · X = B · Entrée = Start · \ = Select · A/S = L/R</p>
+        <span id="debugToggle">debug</span>
+        <div id="debugPanel"></div>
+      </div>
     </div>
 
-    <div class="panel">
-      <button id="soundBtn">🔊 Activer le son</button>
-      <button id="pauseBtn">Pause</button>
-      <div class="save-actions">
-        <button id="localSaveBtn" disabled>Écraser sauvegarde locale</button>
-        <button id="localLoadBtn" disabled>Charger locale</button>
-        <label class="btn control secondary">Importer .sav<input type="file" id="playSavInput" accept=".sav" hidden></label>
-        <button id="saveBtn" disabled>Exporter .sav</button>
+    <div class="mobile-controls" aria-label="Contrôles tactiles">
+      <div class="mobile-buttons">
+        <button type="button" class="touch-btn shoulder" data-gba-key="L">L</button>
+        <button type="button" class="touch-btn shoulder" data-gba-key="R">R</button>
+        <button type="button" class="touch-btn action b" data-gba-key="B">B</button>
+        <button type="button" class="touch-btn action a" data-gba-key="A">A</button>
+        <button type="button" class="touch-btn system" data-gba-key="SELECT">Select</button>
+        <button type="button" class="touch-btn system" data-gba-key="START">Start</button>
       </div>
-      <p id="saveStatus" class="save-status">Aucune ROM chargée.</p>
-      <p class="keys">Clavier : flèches = croix · Z = A · X = B · Entrée = Start · \ = Select · A/S = L/R</p>
-      <span id="debugToggle">debug</span>
-      <div id="debugPanel"></div>
+      <div class="touch-joystick" id="touchJoystick" aria-label="Joystick">
+        <span class="joystick-knob"></span>
+      </div>
     </div>
   </section>
 </main>
@@ -84,5 +111,6 @@
 <script src="assets/js/overlay.js"></script>
 <script src="assets/js/debug.js"></script>
 <script src="assets/js/app.js"></script>
+<script src="assets/js/touch-controls.js"></script>
 </body>
 </html>
