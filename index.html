@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valdoria – Jeu RPG</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+    :root {
+      --gold: #c9a84c;
+      --dark: #0d0b0e;
+      --bg: #111018;
+      --card: #1a1722;
+      --border: #2e2840;
+      --text: #d4c9b0;
+      --muted: #7a6e5a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Crimson Text', Georgia, serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(120, 60, 0, 0.35) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 100%, rgba(30, 0, 60, 0.5) 0%, transparent 60%),
+        linear-gradient(180deg, #0d0b0e 0%, #130f1e 50%, #0d0b0e 100%);
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 20% 30%, rgba(255,255,200,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 20%, rgba(255,255,200,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 60%, rgba(255,255,200,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 80%, rgba(255,255,200,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 70%, rgba(255,255,200,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 35% 15%, rgba(255,255,200,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 65% 85%, rgba(255,255,200,0.3) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .rune-border {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .emblem {
+      font-size: 5rem;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 20px rgba(201,168,76,0.5));
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .hero h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(3rem, 10vw, 7rem);
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.15em;
+      text-shadow:
+        0 0 30px rgba(201,168,76,0.6),
+        0 0 60px rgba(201,168,76,0.3),
+        2px 2px 0 #3a2800;
+      line-height: 1;
+    }
+
+    .hero .tagline {
+      font-size: clamp(1rem, 3vw, 1.4rem);
+      color: var(--muted);
+      margin-top: 1rem;
+      font-style: italic;
+      letter-spacing: 0.2em;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2rem auto;
+      width: min(500px, 80%);
+      color: var(--gold);
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold));
+    }
+    .divider::after { background: linear-gradient(90deg, var(--gold), transparent); }
+
+    .hero-desc {
+      max-width: 600px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--text);
+      opacity: 0.85;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--gold);
+      border-radius: 2px;
+      color: var(--gold);
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      background: rgba(201,168,76,0.05);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+    /* ── SECTIONS ── */
+    section {
+      padding: 5rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.1em;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 3rem;
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--gold);
+      padding: 2rem;
+      border-radius: 2px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(201,168,76,0.1);
+    }
+    .feature-card .icon { font-size: 2rem; margin-bottom: 1rem; }
+    .feature-card h3 {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+    }
+    .feature-card p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; }
+
+    /* ── ASSETS PREVIEW ── */
+    .assets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .asset-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      text-align: center;
+    }
+    .asset-card .asset-thumb {
+      width: 100%;
+      height: 140px;
+      object-fit: contain;
+      background: #0a0910;
+      padding: 1rem;
+      image-rendering: pixelated;
+    }
+    .asset-card .asset-label {
+      padding: 0.75rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── STATUS ── */
+    .status-bar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 2.5rem;
+      text-align: center;
+    }
+
+    .progress-label {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      margin-bottom: 1rem;
+    }
+
+    .progress-track {
+      background: #0a0910;
+      border: 1px solid var(--border);
+      border-radius: 1px;
+      height: 8px;
+      overflow: hidden;
+      margin: 0.5rem 0 1.5rem;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 5%;
+      background: linear-gradient(90deg, #7a5200, var(--gold));
+      border-radius: 1px;
+      box-shadow: 0 0 10px rgba(201,168,76,0.5);
+    }
+
+    .milestones {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .milestone {
+      padding: 0.4rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    .milestone.done {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(201,168,76,0.05);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    footer a { color: var(--gold); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    hr.sep {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="rune-border"></div>
+    <div class="emblem">⚔️</div>
+    <h1>VALDORIA</h1>
+    <div class="divider">✦</div>
+    <p class="tagline">Un monde de légende vous attend</p>
+    <p class="hero-desc">
+      Valdoria est un jeu RPG en développement. Explorez un monde médiéval-fantastique,
+      combattez des créatures redoutables et forgez votre destin.
+    </p>
+    <span class="badge">⚗ En développement</span>
+    <p class="scroll-hint">▼ &nbsp; Découvrir &nbsp; ▼</p>
+  </div>
+
+  <hr class="sep" />
+
+  <!-- FEATURES -->
+  <section>
+    <h2 class="section-title">Le Monde de Valdoria</h2>
+    <p class="section-sub">Ce qui vous attend dans l'aventure</p>
+    <div class="features">
+      <div class="feature-card">
+        <div class="icon">🗺️</div>
+        <h3>Exploration</h3>
+        <p>Parcourez des donjons, forêts et villages dans un monde ouvert riche en secrets.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">⚔️</div>
+        <h3>Combat</h3>
+        <p>Affrontez orcs, squelettes et créatures des ténèbres dans des batailles tactiques.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🧙</div>
+        <h3>Progression</h3>
+        <p>Développez votre personnage — guerrier, mage ou voleur — et forgez votre équipement.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">📜</div>
+        <h3>Histoire</h3>
+        <p>Suivez une trame narrative épique et prenez des décisions qui façonnent le monde.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="sep" />
+
+  <!-- ASSETS -->
+  <section>
+    <h2 class="section-title">Aperçu des Assets</h2>
+    <p class="section-sub">Les visuels du jeu en pixel art</p>
+    <div class="assets-grid">
+      <div class="asset-card">
+        <img class="asset-thumb" src="assets/icons-16x16/all-assets-preview.png" alt="Icônes RPG" />
+        <div class="asset-label">Icônes RPG 16×16</div>
+      </div>
+      <div class="asset-card">
+        <img class="asset-thumb" src="assets/icons-16x16/weapons.png" alt="Armes" />
+        <div class="asset-label">Armes &amp; Équipement</div>
+      </div>
+      <div class="asset-card">
+        <img class="asset-thumb" src="assets/pixel-crawler/Environment/Tilesets/Dungeon_Tiles.png" alt="Tileset donjon" />
+        <div class="asset-label">Tileset Donjon</div>
+      </div>
+      <div class="asset-card">
+        <img class="asset-thumb" src="assets/fantasyville/fantasyville free version.png" alt="Fantasyville" />
+        <div class="asset-label">Fantasyville</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="sep" />
+
+  <!-- STATUS -->
+  <section>
+    <h2 class="section-title">Avancement du Projet</h2>
+    <p class="section-sub">Le développement commence</p>
+    <div class="status-bar">
+      <div class="progress-label">PROGRESSION GLOBALE</div>
+      <div class="progress-track"><div class="progress-fill"></div></div>
+
+      <div class="milestones">
+        <span class="milestone done">✓ Assets collectés</span>
+        <span class="milestone done">✓ Structure du projet</span>
+        <span class="milestone">Moteur de jeu</span>
+        <span class="milestone">Carte du monde</span>
+        <span class="milestone">Système de combat</span>
+        <span class="milestone">Quêtes & histoire</span>
+        <span class="milestone">Version alpha</span>
+        <span class="milestone">Sortie</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Valdoria &copy; 2026 &nbsp;·&nbsp; <a href="https://github.com/osvalt16/Valdoria" target="_blank">GitHub</a></p>
+  </footer>
+
+</body>
+</html>
