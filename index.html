@@ -6,7 +6,7 @@
 <title>Valdoria — Aventure à deux</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/main.css?v=20260612d">
+<link rel="stylesheet" href="assets/css/main.css?v=20260612e">
 </head>
 <body>
 
@@ -96,38 +96,40 @@
   </section>
 </main>
 
-<!-- Émulateur gbajs2 (BSD) — code original, aucune ROM incluse -->
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/util.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/core.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/arm.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/thumb.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/mmu.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/io.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/audio.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/video.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/video/proxy.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/video/software.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/irq.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/keypad.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/sio.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/savedata.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/gpio.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/js/gba.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/andychase/gbajs2@master/resources/biosbin.js"></script>
+<!-- Émulateur gbajs2 (licence BSD, voir js/COPYING) servi depuis le dépôt :
+     plus de dépendance CDN et son worker de rendu (js/video/worker.js) devient
+     utilisable. Aucune ROM incluse. -->
+<script src="js/util.js?v=20260612e"></script>
+<script src="js/core.js?v=20260612e"></script>
+<script src="js/arm.js?v=20260612e"></script>
+<script src="js/thumb.js?v=20260612e"></script>
+<script src="js/mmu.js?v=20260612e"></script>
+<script src="js/io.js?v=20260612e"></script>
+<script src="js/audio.js?v=20260612e"></script>
+<script src="js/video.js?v=20260612e"></script>
+<script src="js/video/proxy.js?v=20260612e"></script>
+<script src="js/video/software.js?v=20260612e"></script>
+<script src="js/irq.js?v=20260612e"></script>
+<script src="js/keypad.js?v=20260612e"></script>
+<script src="js/sio.js?v=20260612e"></script>
+<script src="js/savedata.js?v=20260612e"></script>
+<script src="js/gpio.js?v=20260612e"></script>
+<script src="js/gba.js?v=20260612e"></script>
+<script src="resources/biosbin.js?v=20260612e"></script>
 <!-- Réseau pair-à-pair -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 
-<script src="assets/js/dom.js?v=20260612d"></script>
-<script src="assets/js/state.js?v=20260612d"></script>
-<script src="assets/js/audio.js?v=20260612d"></script>
-<script src="assets/js/emulator.js?v=20260612d"></script>
-<script src="assets/js/position.js?v=20260612d"></script>
-<script src="assets/js/network.js?v=20260612d"></script>
-<script src="assets/js/sprites.js?v=20260612d"></script>
-<script src="assets/js/overlay.js?v=20260612d"></script>
-<script src="assets/js/debug.js?v=20260612d"></script>
-<script src="assets/js/app.js?v=20260612d"></script>
-<script src="assets/js/touch-controls.js?v=20260612d"></script>
-<script src="assets/js/fullscreen.js?v=20260612d"></script>
+<script src="assets/js/dom.js?v=20260612e"></script>
+<script src="assets/js/state.js?v=20260612e"></script>
+<script src="assets/js/audio.js?v=20260612e"></script>
+<script src="assets/js/emulator.js?v=20260612e"></script>
+<script src="assets/js/position.js?v=20260612e"></script>
+<script src="assets/js/network.js?v=20260612e"></script>
+<script src="assets/js/sprites.js?v=20260612e"></script>
+<script src="assets/js/overlay.js?v=20260612e"></script>
+<script src="assets/js/debug.js?v=20260612e"></script>
+<script src="assets/js/app.js?v=20260612e"></script>
+<script src="assets/js/touch-controls.js?v=20260612e"></script>
+<script src="assets/js/fullscreen.js?v=20260612e"></script>
 </body>
 </html>

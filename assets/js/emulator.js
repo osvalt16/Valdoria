@@ -222,8 +222,11 @@
     gba.logLevel = gba.LOG_ERROR;
     gba.setLogger((level, error) => console.error("[gba]", error));
 
-    // Le renderer par défaut dépend d'un worker introuvable depuis le CDN.
-    gba.video.renderPath = new GameBoyAdvanceSoftwareRenderer();
+    // gbajs est servi depuis le dépôt (js/) : son worker de rendu est
+    // trouvable et le renderer par défaut dessine dans un thread dédié,
+    // ce qui libère le thread principal (gros gain PC et mobile).
+    // Sans Worker, gbajs retombe tout seul sur le rendu logiciel.
+    const renduLogiciel = gba.video.renderPath instanceof GameBoyAdvanceSoftwareRenderer;
 
     // Audio : sortie via AudioWorklet (voir assets/js/audio.js pour le pourquoi).
     if (gba.audio && gba.audio.context) {
@@ -280,9 +283,10 @@
     // Rouge Feu peut rester bloqué dans IntrWait si les IRQ sont masquées.
     const avance = gba.advanceFrame.bind(gba);
 
-    // Saut de rendu adaptatif : si l'appareil ne tient pas 60 i/s (mobiles),
-    // on ne dessine qu'une frame sur deux. La logique du jeu tourne à pleine
-    // vitesse, seul l'affichage est allégé. Se réévalue en continu.
+    // Saut de rendu adaptatif, utile seulement en rendu logiciel (le
+    // renderer à worker gère son retard lui-même) : si l'appareil ne tient
+    // pas 60 i/s, on ne dessine qu'1 frame sur 2 puis 1 sur 3. La logique
+    // du jeu et l'audio gardent leur vitesse, seul l'affichage est allégé.
     const renderPath = gba.video.renderPath;
     const vraiScanline = renderPath.drawScanline;
     const vraiFinishDraw = renderPath.finishDraw;
@@ -308,7 +312,7 @@
       }
 
       frameIndex++;
-      const sauterCelleCi = niveauSaut > 0 && frameIndex % (niveauSaut + 1) !== 0;
+      const sauterCelleCi = renduLogiciel && niveauSaut > 0 && frameIndex % (niveauSaut + 1) !== 0;
       if (sauterCelleCi) {
         renderPath.drawScanline = rienScanline;
         renderPath.finishDraw = rienFinish;
