@@ -231,20 +231,43 @@
       window.Valdoria.audio.setup(gba);
     }
 
-    gba.setCanvas($("screen"));
+    // Rendu direct dans un canvas 240x160 (résolution GBA native) :
+    // un seul putImageData par frame, pas de canvas intermédiaire ni de
+    // blit agrandi (gba.setCanvas ferait les deux). C'est le CSS
+    // (image-rendering:pixelated) qui agrandit proprement à l'écran.
+    // alpha:false = canvas opaque, composition moins chère sur mobile.
+    const screenCanvas = $("screen");
+    screenCanvas.width = 240;
+    screenCanvas.height = 160;
+    screenCanvas.getContext("2d", { alpha: false });
+    gba.setCanvasDirect(screenCanvas);
 
-    // gbajs blitte l'image 240x160 dans le canvas 480x320 SANS mise à
-    // l'échelle → jeu dans le coin haut-gauche, bandes noires à droite et
-    // en bas, et désalignement avec l'overlay (qui suppose du 2x).
-    // On force un blit plein canvas en pixels nets.
-    if (gba.indirectCanvas) {
-      const screenCanvas = $("screen");
-      const screenCtx = screenCanvas.getContext("2d");
-      screenCtx.imageSmoothingEnabled = false;
-      gba.video.drawCallback = function () {
-        screenCtx.drawImage(gba.indirectCanvas, 0, 0, screenCanvas.width, screenCanvas.height);
-      };
-    }
+    // Cadence : gbajs planifie chaque frame avec setTimeout(16 ms), donc
+    // émulation + attente fixe → ~35-40 i/s dès que la frame coûte
+    // quelques ms (mobiles), avec du jitter. On cale plutôt la boucle sur
+    // le rafraîchissement de l'écran (requestAnimationFrame), avec un
+    // rattrapage borné du retard pour tenir la vitesse réelle du jeu.
+    const FRAME_MS = 1000 / 59.7275;       // cadence d'origine du GBA
+    let horloge = 0;
+    let retard = 0;
+    window.queueFrame = function (f) {
+      requestAnimationFrame(function (maintenant) {
+        if (!horloge) horloge = maintenant - FRAME_MS;
+        retard += maintenant - horloge;
+        horloge = maintenant;
+        // onglet revenu au premier plan : on ne rattrape pas des minutes
+        if (retard > 3 * FRAME_MS) retard = 3 * FRAME_MS;
+        // écran 90/120 Hz : trop tôt pour une nouvelle frame
+        if (retard < FRAME_MS) { window.queueFrame(f); return; }
+        retard -= FRAME_MS;
+        f();                               // émule une frame et replanifie
+        // encore en retard et du budget avant le prochain vsync : on rattrape
+        while (retard >= FRAME_MS && performance.now() - maintenant < 12 && !gba.paused) {
+          retard -= FRAME_MS;
+          gba.advanceFrame();
+        }
+      });
+    };
 
     gba.setBios(biosBin);
     gba.audio.masterEnable = false;
@@ -259,7 +282,14 @@
     const vraiScanline = renderPath.drawScanline;
     const vraiFinishDraw = renderPath.finishDraw;
     const rienScanline = function () {};
-    const rienFinish = function () {};
+    const rienFinish = function () {
+      // même sur une frame sautée, remettre à zéro les fonds affines
+      // (sinon ils dérivent) ; on ne saute que l'affichage.
+      this.bg[2].sx = this.bg[2].refx;
+      this.bg[2].sy = this.bg[2].refy;
+      this.bg[3].sx = this.bg[3].refx;
+      this.bg[3].sy = this.bg[3].refy;
+    };
     let frameIndex = 0;
     let coutTotal = 0, coutFrames = 0;
     let sauterRendu = false;
