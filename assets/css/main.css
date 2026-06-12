@@ -72,6 +72,7 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
 .panel input { padding:10px; border-radius:9px; border:2px solid var(--bordure); background:#fff;
   color:var(--texte-sombre); width:96px; text-align:center; font-size:1.05rem;
   text-transform:uppercase; letter-spacing:4px; }
+#playerName { width:min(240px, 100%); text-transform:none; letter-spacing:normal; font-size:.95rem; }
 #netStatus { margin:10px 0 0; min-height:1.2em; color:var(--rouge2); font-weight:700; font-size:.95rem; }
 .save-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:4px; margin-top:4px; }
 .save-status { color:#6e6890; font-size:.8rem; min-height:1.2em; margin:8px 0 0; }

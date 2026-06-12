@@ -1,82 +1,124 @@
 (function (window) {
   "use strict";
 
+  // Monde partagé : tous les visiteurs du site se retrouvent dans le même
+  // monde via Firebase Realtime Database (gratuit, clés publiques par
+  // conception). Chaque joueur écrit sa position dans monde/joueurs/<id>
+  // et écoute celles des autres. onDisconnect() retire automatiquement un
+  // joueur qui ferme l'onglet ; on ignore aussi les entrées trop vieilles
+  // au cas où ce nettoyage n'aurait pas pu s'exécuter.
+
   const { $, setStatus } = window.Valdoria.dom;
   const state = window.Valdoria.state;
-  const PREFIX = "valdoria-coop-";
 
-  const myName = () => {
-    const el = document.getElementById("playerName");
-    return (el && el.value.trim()) || "Joueur";
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDwiuOe8Rzf0ByZzvGRUbh4UFrSZOqS1z8",
+    authDomain: "pokekanto.firebaseapp.com",
+    databaseURL: "https://pokekanto-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "pokekanto"
   };
+  const VIEUX_MS = 70000;     // au-delà : joueur considéré déconnecté
+  const ENVOI_MIN_MS = 150;   // pas plus d'une écriture toutes les 150 ms
 
-  function randCode() {
-    const c = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-    return Array.from({ length: 4 }, () => c[Math.floor(Math.random() * c.length)]).join("");
+  let monRef = null;
+  let monId = null;
+  let dernierEnvoi = 0;
+  let dernierePos = null;
+
+  function pseudo() {
+    const saisi = $("playerName").value.trim().slice(0, 16);
+    return saisi || "Dresseur-" + monId.slice(-4).toUpperCase();
   }
 
-  function setupConn(c) {
-    const friend = state.friend;
-    state.conn = c;
-    c.on("open", () => {
-      c.send({ t: "hello", name: myName() });
-      setStatus("Connecté ! Vous partagez le même monde.");
-    });
-    c.on("data", d => {
-      if (d.t === "hello") friend.name = d.name;
-      else if (d.t === "pos") {
-        const previousX = friend.lastTx === null ? d.x : friend.tx;
-        const previousY = friend.lastTy === null ? d.y : friend.ty;
+  function majJoueur(id, d) {
+    if (!d || typeof d.x !== "number" || typeof d.y !== "number") return;
+    let j = state.joueurs[id];
+    if (!j) {
+      j = state.joueurs[id] = {
+        nom: "", g: -1, m: -1, tx: 0, ty: 0, lastTx: null, lastTy: null,
+        dx: 0, dy: 0, visible: false, direction: "down", movingUntil: 0,
+        sexe: null, t: 0
+      };
+    }
+    const prevX = j.lastTx === null ? d.x : j.tx;
+    const prevY = j.lastTy === null ? d.y : j.ty;
+    j.nom = d.nom || "Dresseur";
+    j.lastTx = j.tx; j.lastTy = j.ty;
+    j.g = d.g; j.m = d.m; j.tx = d.x; j.ty = d.y;
+    j.sexe = d.sexe === 0 || d.sexe === 1 ? d.sexe : null;
+    j.t = d.t || Date.now();
+    if (d.x !== prevX || d.y !== prevY) {
+      if (Math.abs(d.x - prevX) >= Math.abs(d.y - prevY))
+        j.direction = d.x > prevX ? "right" : "left";
+      else
+        j.direction = d.y > prevY ? "down" : "up";
+      j.movingUntil = Date.now() + 500;
+    }
+  }
 
-        friend.connected = true;
-        friend.lastTx = friend.tx;
-        friend.lastTy = friend.ty;
-        friend.g = d.g;
-        friend.m = d.m;
-        friend.tx = d.x;
-        friend.ty = d.y;
-        friend.sexe = d.s === 0 || d.s === 1 ? d.s : null;
+  function majStatut() {
+    const n = Object.keys(state.joueurs).length;
+    setStatus(n === 0
+      ? "🌍 Connecté au monde — tu es seul pour l'instant."
+      : "🌍 Connecté au monde — " + (n + 1) + " joueurs en ligne.");
+  }
 
-        if (d.x !== previousX || d.y !== previousY) {
-          if (Math.abs(d.x - previousX) >= Math.abs(d.y - previousY))
-            friend.direction = d.x > previousX ? "right" : "left";
-          else
-            friend.direction = d.y > previousY ? "down" : "up";
-          friend.movingUntil = Date.now() + 500;
-        }
-      }
+  function connectWorld() {
+    if (state.monde) return;
+    if (typeof firebase === "undefined") {
+      setStatus("Service de jeu en ligne indisponible (Firebase non chargé).");
+      return;
+    }
+
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const db = firebase.database();
+    state.monde = db;
+    monId = "j" + Math.random().toString(36).slice(2, 10);
+    monRef = db.ref("monde/joueurs/" + monId);
+    monRef.onDisconnect().remove();
+
+    const joueursRef = db.ref("monde/joueurs");
+    joueursRef.on("child_added", s => { if (s.key !== monId) { majJoueur(s.key, s.val()); majStatut(); } });
+    joueursRef.on("child_changed", s => { if (s.key !== monId) majJoueur(s.key, s.val()); });
+    joueursRef.on("child_removed", s => { delete state.joueurs[s.key]; majStatut(); });
+
+    db.ref(".info/connected").on("value", s => {
+      if (s.val()) majStatut();
+      else setStatus("Connexion au monde perdue, reconnexion…");
     });
-    c.on("close", () => {
-      friend.connected = false;
-      friend.visible = false;
-      state.conn = null;
-      setStatus("Ton ami s'est déconnecté.");
-      $("friendInfo").textContent = "";
+
+    // purge des joueurs fantômes (onglet tué sans onDisconnect)
+    setInterval(() => {
+      const limite = Date.now() - VIEUX_MS;
+      for (const id of Object.keys(state.joueurs))
+        if (state.joueurs[id].t < limite) { delete state.joueurs[id]; majStatut(); }
+    }, 10000);
+
+    $("playerName").addEventListener("change", () => {
+      try { window.localStorage.setItem("valdoria.pseudo", $("playerName").value.trim()); } catch (e) {}
+      if (dernierePos) { dernierePos = null; sendPos(state.myPos); }
     });
   }
 
-  function hostRoom() {
-    const code = randCode();
-    state.peer = new Peer(PREFIX + code);
-    state.peer.on("open", () => setStatus("Salon créé ! Donne ce code à ton ami : " + code));
-    state.peer.on("connection", setupConn);
-    state.peer.on("error", e => setStatus("Erreur réseau : " + e.type));
-    $("hostBtn").disabled = true;
-    $("joinBtn").disabled = true;
-  }
-
-  function joinRoom() {
-    const code = $("joinCode").value.trim().toUpperCase();
-    if (code.length !== 4) { setStatus("Entre le code à 4 caractères donné par ton ami."); return; }
-    state.peer = new Peer();
-    state.peer.on("open", () => {
-      setStatus("Connexion au salon " + code + "…");
-      setupConn(state.peer.connect(PREFIX + code));
+  // Appelé en continu par app.js : n'écrit que si quelque chose a changé,
+  // plus un battement de cœur périodique pour rester "frais".
+  function sendPos(pos) {
+    if (!monRef || !pos) return;
+    const now = Date.now();
+    const meme = dernierePos &&
+      dernierePos.x === pos.x && dernierePos.y === pos.y &&
+      dernierePos.g === pos.g && dernierePos.m === pos.m;
+    if (meme && now - dernierEnvoi < 30000) return;
+    if (now - dernierEnvoi < ENVOI_MIN_MS) return;
+    dernierEnvoi = now;
+    dernierePos = { x: pos.x, y: pos.y, g: pos.g, m: pos.m };
+    monRef.set({
+      nom: pseudo(),
+      x: pos.x, y: pos.y, g: pos.g, m: pos.m,
+      sexe: pos.sexe === 0 || pos.sexe === 1 ? pos.sexe : null,
+      t: firebase.database.ServerValue.TIMESTAMP
     });
-    state.peer.on("error", e => setStatus("Erreur : " + e.type + " (code incorrect ?)"));
-    $("hostBtn").disabled = true;
-    $("joinBtn").disabled = true;
   }
 
-  window.Valdoria.network = { hostRoom, joinRoom };
+  window.Valdoria.network = { connectWorld, sendPos };
 })(window);

@@ -20,36 +20,41 @@
 
   function drawOverlay() {
     const ctx = $("overlay").getContext("2d");
-    const friend = state.friend;
     const myPos = state.myPos;
-    const conn = state.conn;
 
     ctx.clearRect(0, 0, 480, 320);
 
-    if (friend.connected && myPos) {
-      if (friend.g === myPos.g && friend.m === myPos.m) {
-        const px = PLAYER_PX + (friend.tx - myPos.x) * 16;
-        const py = PLAYER_PY + (friend.ty - myPos.y) * 16;
-        if (!friend.visible) { friend.dx = px; friend.dy = py; friend.visible = true; }
-        friend.dx += (px - friend.dx) * 0.25;
-        friend.dy += (py - friend.dy) * 0.25;
+    let ailleurs = 0;
+    if (myPos) {
+      for (const id of Object.keys(state.joueurs)) {
+        const j = state.joueurs[id];
+        if (j.g !== myPos.g || j.m !== myPos.m) { j.visible = false; ailleurs++; continue; }
 
-        const X = friend.dx * SCALE;
-        const Y = friend.dy * SCALE;
+        const px = PLAYER_PX + (j.tx - myPos.x) * 16;
+        const py = PLAYER_PY + (j.ty - myPos.y) * 16;
+        if (!j.visible) { j.dx = px; j.dy = py; j.visible = true; }
+        j.dx += (px - j.dx) * 0.25;
+        j.dy += (py - j.dy) * 0.25;
+
+        const X = j.dx * SCALE;
+        const Y = j.dy * SCALE;
         if (X > -40 && X < 510 && Y > -40 && Y < 350) {
-          sprites.draw(ctx, X, Y, friend);
-          drawName(ctx, friend.name, X, Y);
+          sprites.draw(ctx, X, Y, j);
+          drawName(ctx, j.nom, X, Y);
         }
-        $("friendInfo").textContent = "";
-      } else {
-        friend.visible = false;
-        $("friendInfo").textContent = "📍 " + friend.name + " explore une autre zone…";
       }
-    } else if (conn && conn.open && !myPos) {
-      $("friendInfo").textContent = "⏳ Recherche de ta position en mémoire… (sois sur la map, en train de marcher)";
-    } else if (conn && conn.open && myPos && !friend.connected) {
-      $("friendInfo").textContent = "⏳ En attente de la position de " + friend.name + "…";
     }
+
+    const total = Object.keys(state.joueurs).length;
+    if (state.monde && !myPos)
+      $("friendInfo").textContent = "⏳ Recherche de ta position en mémoire… (sois sur la map, en train de marcher)";
+    else if (ailleurs > 0)
+      $("friendInfo").textContent = "📍 " + ailleurs + (ailleurs > 1 ? " joueurs explorent" : " joueur explore") + " d'autres zones…";
+    else if (total === 0 && state.monde && myPos)
+      $("friendInfo").textContent = "";
+    else
+      $("friendInfo").textContent = "";
+
     requestAnimationFrame(drawOverlay);
   }
 

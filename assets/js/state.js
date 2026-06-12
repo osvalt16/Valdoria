@@ -9,24 +9,11 @@
     pendingSaveName: "",
     pendingSaveRead: null,
     lastLocalSaveAt: null,
-    peer: null,
-    conn: null,
     myPos: null,
-    friend: {
-      connected: false,
-      name: "Ami",
-      g: -1,
-      m: -1,
-      tx: 0,
-      ty: 0,
-      lastTx: null,
-      lastTy: null,
-      dx: 0,
-      dy: 0,
-      visible: false,
-      direction: "down",
-      movingUntil: 0,
-      sexe: null
-    }
+    monde: null,        // connexion au monde partagé (network.js)
+    // joueurs distants, indexés par identifiant de session Firebase.
+    // Chaque entrée : { nom, g, m, tx, ty, lastTx, lastTy, dx, dy,
+    //                   visible, direction, movingUntil, sexe, t }
+    joueurs: {}
   };
 })(window);

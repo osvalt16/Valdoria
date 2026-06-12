@@ -193,7 +193,7 @@
     gba.audio.masterEnable = soundEnabled;
     applyPendingSave();
     state.myPos = null;
-    state.friend.visible = false;
+    for (const id of Object.keys(state.joueurs)) state.joueurs[id].visible = false;
     $("pauseBtn").textContent = "Pause";
     gba.runStable();
     if (options.persist !== false)
@@ -358,9 +358,7 @@
         persistCurrentSave("Sauvegarde .sav importée. Elle remplace le slot local de cette ROM.", "import");
       gba.runStable();
       updateInitialSaveStatus(imported);
-      setStatus("Prêt ! Crée un salon ou rejoins ton ami avec son code.");
-      $("hostBtn").disabled = false;
-      $("joinBtn").disabled = false;
+      setStatus("Prêt ! Connexion au monde…");
       if (typeof onReady === "function") onReady();
     }).catch(error => {
       console.error("[gba]", error);
