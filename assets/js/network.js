@@ -34,6 +34,7 @@
   }
 
   function verrouillePseudo(nom) {
+    if (window.Valdoria.tchat) window.Valdoria.tchat.definitNom(nom);
     const champ = $("playerName");
     if (champ.disabled && champ.value === nom) return;
     champ.value = nom;
