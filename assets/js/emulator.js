@@ -232,6 +232,20 @@
     }
 
     gba.setCanvas($("screen"));
+
+    // gbajs blitte l'image 240x160 dans le canvas 480x320 SANS mise à
+    // l'échelle → jeu dans le coin haut-gauche, bandes noires à droite et
+    // en bas, et désalignement avec l'overlay (qui suppose du 2x).
+    // On force un blit plein canvas en pixels nets.
+    if (gba.indirectCanvas) {
+      const screenCanvas = $("screen");
+      const screenCtx = screenCanvas.getContext("2d");
+      screenCtx.imageSmoothingEnabled = false;
+      gba.video.drawCallback = function () {
+        screenCtx.drawImage(gba.indirectCanvas, 0, 0, screenCanvas.width, screenCanvas.height);
+      };
+    }
+
     gba.setBios(biosBin);
     gba.audio.masterEnable = false;
 
