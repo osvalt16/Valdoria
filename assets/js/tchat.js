@@ -132,9 +132,12 @@
       liste.appendChild(puce);
     }
 
+    // parler exige une partie chargée avec un nom de héros, partout
     const champ = $("tchatInput");
-    champ.disabled = canal === "amis" && !monTag;
-    champ.placeholder = canal === "amis" ? "Écris à tes amis…" : "Écris au monde…";
+    champ.disabled = !monTag;
+    champ.placeholder = !monTag
+      ? "Lance ta partie pour pouvoir parler…"
+      : (canal === "amis" ? "Écris à tes amis…" : "Écris au monde…");
     rendMessages();
   }
 
@@ -212,7 +215,7 @@
       const texte = champ.value.trim().slice(0, 120);
       const now = Date.now();
       if (!texte || now - dernierEnvoi < 1000) return;     // anti-spam simple
-      if (canal === "amis" && !monTag) return;
+      if (!monTag) return;            // pas de partie chargée = pas de tchat
       dernierEnvoi = now;
       const ref = canal === "general"
         ? db.ref("monde/tchat")
