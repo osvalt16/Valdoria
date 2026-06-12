@@ -77,8 +77,6 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
 .save-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:4px; margin-top:4px; }
 .save-status { color:#6e6890; font-size:.8rem; min-height:1.2em; margin:8px 0 0; }
 .keys { color:#7a7494; font-size:.78rem; margin-top:8px; }
-.sync-bloc { margin-top:10px; }
-#syncCode { width:min(260px, 100%); text-transform:none; letter-spacing:normal; font-size:.9rem; }
 
 /* ---------- tchat général ---------- */
 #tchat { margin:10px 0; background:var(--panneau); border:3px solid var(--bordure);

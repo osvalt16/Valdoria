@@ -95,7 +95,6 @@
     joueursRef.on("child_removed", s => { delete state.joueurs[s.key]; majStatut(); });
 
     if (window.Valdoria.tchat) window.Valdoria.tchat.connect(db, pseudo);
-    if (window.Valdoria.sync) window.Valdoria.sync.connect(db);
 
     db.ref(".info/connected").on("value", s => {
       if (s.val()) majStatut();

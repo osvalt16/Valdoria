@@ -207,7 +207,6 @@
       writeLocalSaveMeta("auto");
       updateSaveControls();
       setSaveStatus("Sauvegarde locale remplacée automatiquement à " + formatTime(Date.now()) + ".");
-      if (window.Valdoria.sync) window.Valdoria.sync.envoie();
       return result;
     };
   }
@@ -436,24 +435,10 @@
     setSaveStatus("Export .sav généré (" + formatSize(buffer.byteLength) + ").");
   }
 
-  // applique une sauvegarde reçue du cloud : redémarre la ROM avec,
-  // et l'enregistre en local sans la renvoyer (sync s'en charge déjà)
-  function appliqueSauvegarde(buffer) {
-    if (!buffer || isBlankSaveBuffer(buffer)) return false;
-    setSaveData(buffer, "Sauvegarde cloud");
-    const ok = resetWithCurrentSave({ persist: false });
-    if (ok) {
-      state.gba.storeSavedata();
-      setSaveStatus("Sauvegarde cloud appliquée. Reprends depuis le menu du jeu.");
-    }
-    return ok;
-  }
-
   window.Valdoria.emulator = {
     bootEmulator,
     loadSaveFile,
     persistCurrentSave,
-    appliqueSauvegarde,
     toggleSound,
     togglePause,
     downloadSave
