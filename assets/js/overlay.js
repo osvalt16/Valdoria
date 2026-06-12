@@ -24,8 +24,9 @@
 
     ctx.clearRect(0, 0, 480, 320);
 
+    // en combat/cinématique, rien ne doit se dessiner par-dessus le jeu
     let ailleurs = 0;
-    if (myPos) {
+    if (myPos && state.surCarte !== false) {
       for (const id of Object.keys(state.joueurs)) {
         const j = state.joueurs[id];
         if (j.g !== myPos.g || j.m !== myPos.m) { j.visible = false; ailleurs++; continue; }
@@ -46,7 +47,9 @@
     }
 
     const total = Object.keys(state.joueurs).length;
-    if (state.monde && !myPos)
+    if (state.surCarte === false)
+      $("friendInfo").textContent = "";
+    else if (state.monde && !myPos)
       $("friendInfo").textContent = "⏳ Recherche de ta position en mémoire… (sois sur la map, en train de marcher)";
     else if (ailleurs > 0)
       $("friendInfo").textContent = "📍 " + ailleurs + (ailleurs > 1 ? " joueurs explorent" : " joueur explore") + " d'autres zones…";

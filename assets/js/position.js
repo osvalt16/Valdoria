@@ -2,7 +2,65 @@
   "use strict";
 
   const state = window.Valdoria.state;
-  const urlSb1 = new URLSearchParams(window.location.search).get("sb1");
+  const params = new URLSearchParams(window.location.search);
+  const urlSb1 = params.get("sb1");
+
+  // Détection "sur la carte" : gMain.callback2 (IWRAM, gMain+4 sur Rouge
+  // Feu) pointe vers la boucle de l'overworld quand on est sur la carte,
+  // et vers autre chose en combat/cinématique/menu titre. On ne connaît
+  // pas sa valeur à l'avance (elle dépend de la ROM) : on l'apprend en
+  // l'échantillonnant pendant que le joueur MARCHE (la position change),
+  // puis on la retient (localStorage par ROM). Tant qu'elle n'est pas
+  // apprise, on affiche tout comme avant — jamais pire que l'existant.
+  const CB2_ADDR = parseInt(params.get("cb2") || "0x030030F4", 16);
+  let cb2Connu = null;
+  let cb2Charge = false;
+  let cbCandidat = 0;
+  let cbSerie = 0;
+  let derniereXY = null;
+
+  function cleCb2() {
+    const cart = state.gba && state.gba.mmu ? state.gba.mmu.cart : null;
+    return cart && cart.code ? "valdoria.cb2." + cart.code : null;
+  }
+
+  function lireCb2() {
+    try { return state.gba.mmu.load32(CB2_ADDR) >>> 0; } catch (e) { return 0; }
+  }
+
+  function apprendCb2(pos) {
+    if (!cb2Charge) {
+      cb2Charge = true;
+      try {
+        const k = cleCb2();
+        const v = k ? window.localStorage.getItem(k) : null;
+        if (v) cb2Connu = parseInt(v, 16) >>> 0;
+      } catch (e) { /* stockage indisponible */ }
+    }
+    if (!derniereXY || (pos.x === derniereXY.x && pos.y === derniereXY.y)) {
+      derniereXY = { x: pos.x, y: pos.y };
+      return;
+    }
+    derniereXY = { x: pos.x, y: pos.y };
+    const cb = lireCb2();
+    if (cb < 0x08000000 || cb >= 0x0A000000) return;   // pas un pointeur ROM
+    if (cb === cbCandidat) {
+      if (++cbSerie >= 4 && cb2Connu !== cb) {
+        cb2Connu = cb;
+        try { const k = cleCb2(); if (k) window.localStorage.setItem(k, cb.toString(16)); } catch (e) {}
+      }
+    } else {
+      cbCandidat = cb;
+      cbSerie = 1;
+    }
+  }
+
+  // true = overworld (ou détection pas encore apprise), false = combat,
+  // cinématique, menu titre… : l'overlay ne doit rien dessiner.
+  function estSurCarte() {
+    if (!state.gba || !state.gba.rom || cb2Connu === null) return true;
+    return lireCb2() === cb2Connu;
+  }
   const sb1Candidates = urlSb1 ? [parseInt(urlSb1, 16)] : [0x03005008, 0x0300500C, 0x03005010];
   let sb1Found = null;
   let lastScan = 0;
@@ -83,12 +141,12 @@
     try {
       if (sb1Found) {
         const pos = lirePosA(sb1Found);
-        if (pos) return pos;
+        if (pos) { apprendCb2(pos); return pos; }
         sb1Found = null;
       }
       for (const addr of sb1Candidates) {
         const pos = lirePosA(addr);
-        if (pos) { sb1Found = addr; return pos; }
+        if (pos) { sb1Found = addr; apprendCb2(pos); return pos; }
       }
       const now = Date.now();
       if (now - lastScan > 3000) {
@@ -100,5 +158,5 @@
     return null;
   }
 
-  window.Valdoria.position = { readMyPos };
+  window.Valdoria.position = { readMyPos, estSurCarte };
 })(window);

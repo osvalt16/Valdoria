@@ -13,6 +13,7 @@
     network.connectWorld();
     setInterval(() => {
       state.myPos = position.readMyPos();
+      state.surCarte = position.estSurCarte();
       if (state.myPos) network.sendPos(state.myPos);
       debug.updateDebug();
     }, 125);
