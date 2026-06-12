@@ -3,10 +3,17 @@
 
   // Sortie audio via AudioWorklet (thread audio dédié).
   // Pourquoi : le ScriptProcessor de gbajs tourne sur le thread principal,
-  // déjà occupé par l'émulation → callbacks en retard → craquements et son
-  // métallique. Ici l'émulateur pousse ses échantillons vers un worklet qui
-  // les rejoue avec interpolation linéaire, tampon anti-latence et fondu
-  // doux quand il manque d'échantillons.
+  // déjà occupé par l'émulation → callbacks en retard → craquements.
+  // Le worklet rejoue les échantillons poussés par l'émulateur avec :
+  // - un contrôle de débit (±0,5 %) : l'horloge de l'émulateur (calée sur
+  //   l'écran) et l'horloge audio divergent légèrement ; sans correction le
+  //   tampon déborde ou se vide toutes les ~30 s → saut ou coupure audible ;
+  // - un amorçage : après une coupure, on attend ~60 ms de réserve avant de
+  //   reprendre, au lieu d'enchaîner micro-coupures et reprises ;
+  // - un passe-bas 2 pôles à 8 kHz : la musique GBA (mixée à ~13 kHz puis
+  //   recopiée à 32 kHz sans interpolation) produit un aliasing métallique
+  //   que le filtre adoucit, comme la sortie analogique de la vraie console ;
+  // - un fondu doux vers le silence quand il n'y a plus rien à jouer.
 
   const state = window.Valdoria.state;
 
@@ -22,6 +29,10 @@ class ValdoriaAudioProcessor extends AudioWorkletProcessor {
     this.inRate = 32768; // taux d'échantillonnage GBA
     this.lastL = 0;
     this.lastR = 0;
+    this.primed = false;
+    // passe-bas 2 pôles à 8 kHz (états L1, L2, R1, R2)
+    this.lpA = 1 - Math.exp(-2 * Math.PI * 8000 / sampleRate);
+    this.f0 = 0; this.f1 = 0; this.f2 = 0; this.f3 = 0;
     this.port.onmessage = e => {
       const d = e.data;
       if (d.rate) { this.inRate = d.rate; return; }
@@ -31,29 +42,49 @@ class ValdoriaAudioProcessor extends AudioWorkletProcessor {
         this.bufR[this.w % this.N] = r[i];
         this.w++;
       }
-      // anti-latence : si trop d'échantillons s'accumulent, on saute en avant
-      const max = this.inRate * 0.25;
-      if (this.w - this.r > max) this.r = this.w - max * 0.5;
+      // garde-fou : si vraiment trop d'avance s'accumule, on resaute à la cible
+      if (this.w - this.r > this.inRate * 0.3) this.r = this.w - this.inRate * 0.125;
     };
   }
   process(inputs, outputs) {
     const out = outputs[0];
     const L = out[0], R = out[1] || out[0];
-    const step = this.inRate / sampleRate;
+    const cible = this.inRate * 0.125;        // ~125 ms de réserve visée
+    if (!this.primed) {
+      if (this.w - this.r >= cible * 0.5) this.primed = true;
+      else {
+        for (let i = 0; i < L.length; i++) {
+          this.lastL *= 0.97; this.lastR *= 0.97;
+          L[i] = this.lastL; R[i] = this.lastR;
+        }
+        return true;
+      }
+    }
+    // contrôle de débit : on lit jusqu'à ±0,5 % plus ou moins vite pour
+    // rester autour de la réserve cible (inaudible, évite sauts et trous)
+    const ecart = (this.w - this.r - cible) / cible;
+    const correction = Math.max(-0.005, Math.min(0.005, ecart * 0.01));
+    const step = (this.inRate / sampleRate) * (1 + correction);
+    const a = this.lpA;
     for (let i = 0; i < L.length; i++) {
+      let l, r;
       if (this.r + 1 < this.w) {
         const i0 = Math.floor(this.r), t = this.r - i0;
-        const a = i0 % this.N, b = (i0 + 1) % this.N;
-        this.lastL = L[i] = this.bufL[a] * (1 - t) + this.bufL[b] * t;
-        this.lastR = R[i] = this.bufR[a] * (1 - t) + this.bufR[b] * t;
+        const p = i0 % this.N, q = (i0 + 1) % this.N;
+        l = this.bufL[p] * (1 - t) + this.bufL[q] * t;
+        r = this.bufR[p] * (1 - t) + this.bufR[q] * t;
         this.r += step;
       } else {
-        // plus rien à jouer : fondu doux vers le silence, pas de clic
-        this.lastL *= 0.97;
-        this.lastR *= 0.97;
-        L[i] = this.lastL;
-        R[i] = this.lastR;
+        this.primed = false;                  // plus rien : on réamorcera
+        l = this.lastL * 0.97;
+        r = this.lastR * 0.97;
       }
+      this.f0 += a * (l - this.f0);
+      this.f1 += a * (this.f0 - this.f1);
+      this.f2 += a * (r - this.f2);
+      this.f3 += a * (this.f2 - this.f3);
+      this.lastL = L[i] = this.f1;
+      this.lastR = R[i] = this.f3;
     }
     return true;
   }
