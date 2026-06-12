@@ -128,9 +128,17 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
     margin:4px 0;
     font-size:.78rem;
   }
-  /* tchat compact pour laisser la place aux contrôles */
-  body.is-playing #tchat { margin:4px 0; padding:6px; border-width:2px; }
-  body.is-playing #tchatMessages { height:64px; font-size:.75rem; }
+  /* portrait : le tchat occupe tout l'espace entre l'écran et le pad */
+  body.is-playing #tchat {
+    display:flex;
+    flex-direction:column;
+    flex:1 1 auto;
+    min-height:96px;
+    margin:4px 0;
+    padding:6px;
+    border-width:2px;
+  }
+  body.is-playing #tchatMessages { flex:1; height:auto; min-height:48px; font-size:.75rem; }
 
   .mobile-hud {
     display:flex;
