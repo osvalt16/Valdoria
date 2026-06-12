@@ -131,9 +131,7 @@
 
   function updateSaveControls() {
     const hasGame = !!(state.gba && state.gba.rom && getSaveView());
-    $("localSaveBtn").disabled = !hasGame;
     $("saveBtn").disabled = !hasGame;
-    $("localLoadBtn").disabled = !hasGame || !hasLocalSave();
   }
 
   function updateInitialSaveStatus(imported) {
@@ -436,38 +434,10 @@
     setSaveStatus("Export .sav généré (" + formatSize(buffer.byteLength) + ").");
   }
 
-  function loadLocalSave() {
-    const key = getSaveStorageKey();
-    if (!key || !state.gba || !state.gba.rom) {
-      setSaveStatus("Charge une ROM avant de charger une sauvegarde locale.");
-      return;
-    }
-
-    try {
-      const data = window.localStorage.getItem(key);
-      if (!data) {
-        updateSaveControls();
-        setSaveStatus("Aucun slot local pour cette ROM.");
-        return;
-      }
-
-      setSaveData(state.gba.decodeBase64(data), "Sauvegarde locale");
-      resetWithCurrentSave({ persist: false });
-      const meta = readLocalSaveMeta();
-      const suffix = meta && meta.savedAt ? " de " + formatTime(meta.savedAt) : "";
-      setSaveStatus("Slot local unique" + suffix + " chargé.");
-      setStatus("Sauvegarde locale chargée. Lance la partie depuis le menu du jeu.");
-    } catch (error) {
-      console.error("[save]", error);
-      setSaveStatus("Impossible de charger la sauvegarde locale.");
-    }
-  }
-
   window.Valdoria.emulator = {
     bootEmulator,
     loadSaveFile,
     persistCurrentSave,
-    loadLocalSave,
     toggleSound,
     togglePause,
     downloadSave
