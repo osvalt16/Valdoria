@@ -184,29 +184,17 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
     box-shadow:none;
   }
 
-  /* ----- coque manette ----- */
+  /* ----- coque manette : croix à gauche, A/B à droite, L/R en haut ----- */
   .mobile-controls {
-    display:grid;
-    grid-template-columns:138px minmax(0, 1fr);
-    align-items:end;
-    gap:12px;
+    display:block;
     margin-top:auto;
     user-select:none;
     -webkit-user-select:none;
     touch-action:none;
     background:linear-gradient(180deg, var(--violet) 0%, var(--violet2) 70%, var(--violet3) 100%);
     border-radius:26px 26px 32px 32px;
-    padding:16px 14px 18px;
+    padding:0 16px 14px;
     box-shadow:0 12px 30px rgba(0,0,0,.55), inset 0 2px 2px rgba(255,255,255,.25);
-  }
-  .mobile-buttons {
-    grid-column:2;
-    display:grid;
-    grid-template-columns:repeat(3, minmax(48px, 64px));
-    grid-auto-rows:48px;
-    align-items:center;
-    justify-content:end;
-    gap:9px;
   }
   .touch-btn {
     border:none;
@@ -219,63 +207,61 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
     box-shadow:0 3px 0 var(--creme-ombre), 0 6px 12px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.8);
     touch-action:none;
   }
-  .touch-btn.action {
-    width:58px;
-    height:58px;
-    font-size:.85rem;
-    background:radial-gradient(circle at 35% 28%, #ffffff, var(--creme2) 75%);
-  }
-  .touch-btn.action.a { transform:translateY(-8px); }
-  .touch-btn.action.b { transform:translateY(8px); }
-  .touch-btn.system, .touch-btn.shoulder {
-    min-width:58px;
-    height:38px;
-    font-size:.5rem;
-    text-transform:uppercase;
-  }
   .touch-btn.is-active {
     filter:brightness(.94);
     transform:scale(.96) translateY(2px);
     box-shadow:0 1px 0 var(--creme-ombre), inset 0 1px 2px rgba(0,0,0,.15);
   }
-  .touch-btn.action.a.is-active { transform:translateY(-6px) scale(.96); }
-  .touch-btn.action.b.is-active { transform:translateY(10px) scale(.96); }
 
-  /* ----- joystick (croix virtuelle) ----- */
-  .touch-joystick {
-    grid-column:1;
-    justify-self:start;
+  .shoulder-row { display:flex; justify-content:space-between; transform:translateY(-12px); padding:0 4px; }
+  .touch-btn.shoulder {
+    min-width:86px;
+    height:30px;
+    border-radius:14px 14px 8px 8px;
+    font-size:.5rem;
+    text-transform:uppercase;
+  }
+
+  .pad-row { display:flex; justify-content:space-between; align-items:center; padding:4px 2px 2px; }
+
+  .dpad {
     position:relative;
-    width:132px;
-    height:132px;
-    border-radius:50%;
-    border:none;
-    background:radial-gradient(circle at center, rgba(255,255,255,.16) 0 27%, rgba(20,12,36,.45) 28% 100%);
-    box-shadow:inset 0 2px 8px rgba(0,0,0,.45), inset 0 -1px 0 rgba(255,255,255,.15);
+    display:grid;
+    grid-template-columns:repeat(3, 48px);
+    grid-template-rows:repeat(3, 48px);
     touch-action:none;
   }
-  .touch-joystick::before, .touch-joystick::after {
-    content:"";
-    position:absolute;
-    background:rgba(255,255,255,.2);
-    left:50%;
-    top:50%;
-    transform:translate(-50%, -50%);
+  .dpad .d {
+    display:flex; align-items:center; justify-content:center;
+    pointer-events:none;                       /* la zone .dpad gère le tactile */
+    background:linear-gradient(180deg, #f2eef8, var(--creme2));
+    color:#8d83a5; font-size:.95rem;
+    box-shadow:0 3px 0 var(--creme-ombre), 0 5px 8px rgba(0,0,0,.3);
   }
-  .touch-joystick::before { width:86%; height:2px; border-radius:2px; }
-  .touch-joystick::after { width:2px; height:86%; border-radius:2px; }
-  .joystick-knob {
-    position:absolute;
-    left:50%;
-    top:50%;
-    width:58px;
-    height:58px;
-    border-radius:50%;
-    background:radial-gradient(circle at 35% 28%, #ffffff, var(--creme2) 75%);
-    box-shadow:0 5px 0 var(--creme-ombre), 0 10px 18px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.85);
-    transform:translate(-50%, -50%);
-    transition:transform .08s ease;
+  .d.up     { grid-area:1/2; border-radius:12px 12px 0 0; }
+  .d.left   { grid-area:2/1; border-radius:12px 0 0 12px; }
+  .d.centre { grid-area:2/2; box-shadow:none; position:relative; }
+  .d.centre::after { content:""; position:absolute; inset:0; margin:auto; width:20px; height:20px;
+    border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff, #b9afcc); }
+  .d.right  { grid-area:2/3; border-radius:0 12px 12px 0; }
+  .d.down   { grid-area:3/2; border-radius:0 0 12px 12px; }
+  .d.is-active { filter:brightness(.9); box-shadow:0 1px 0 var(--creme-ombre), inset 0 2px 3px rgba(0,0,0,.2); }
+
+  .ab { display:flex; gap:14px; align-items:center; transform:rotate(-14deg); padding-right:4px; }
+  .touch-btn.action { width:62px; height:62px; font-size:.85rem; }
+  .touch-btn.action.a { transform:translateY(-12px); }
+  .touch-btn.action.b { transform:translateY(12px); }
+  .touch-btn.action.a.is-active { transform:translateY(-10px) scale(.96); }
+  .touch-btn.action.b.is-active { transform:translateY(14px) scale(.96); }
+
+  .system-row { display:flex; justify-content:center; align-items:center; gap:14px; margin-top:4px; }
+  .touch-btn.system {
+    min-width:76px;
+    height:32px;
+    font-size:.5rem;
+    text-transform:uppercase;
   }
+  .led2 { width:10px; height:10px; border-radius:50%; background:#39d353; box-shadow:0 0 8px #39d353; }
 }
 
 /* ----- paysage : contrôles flottants translucides ----- */
@@ -292,7 +278,7 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
   body.is-playing #friendInfo {
     position:fixed;
     left:50%;
-    bottom:calc(env(safe-area-inset-bottom) + 6px);
+    bottom:calc(env(safe-area-inset-bottom) + 48px);
     transform:translateX(-50%);
     z-index:6;
     width:42vw;
@@ -317,18 +303,37 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
     padding:0;
     box-shadow:none;
   }
-  .touch-joystick {
+  .shoulder-row, .pad-row, .system-row { display:contents; }
+  .touch-btn.shoulder {
+    position:absolute;
+    bottom:calc(env(safe-area-inset-bottom) + 188px);
+    pointer-events:auto;
+    opacity:.85;
+  }
+  .shoulder-row .touch-btn.shoulder:first-child { left:calc(env(safe-area-inset-left) + 18px); }
+  .shoulder-row .touch-btn.shoulder:last-child { right:calc(env(safe-area-inset-right) + 18px); }
+  .dpad {
     position:absolute;
     left:calc(env(safe-area-inset-left) + 18px);
-    bottom:calc(env(safe-area-inset-bottom) + 18px);
+    bottom:calc(env(safe-area-inset-bottom) + 26px);
     pointer-events:auto;
-    opacity:.88;
+    opacity:.9;
   }
-  .mobile-buttons {
+  .ab {
     position:absolute;
     right:calc(env(safe-area-inset-right) + 18px);
-    bottom:calc(env(safe-area-inset-bottom) + 18px);
+    bottom:calc(env(safe-area-inset-bottom) + 38px);
     pointer-events:auto;
-    opacity:.92;
+    opacity:.9;
+    transform:rotate(-14deg);
   }
+  .touch-btn.system {
+    position:absolute;
+    bottom:calc(env(safe-area-inset-bottom) + 8px);
+    pointer-events:auto;
+    opacity:.85;
+  }
+  .system-row .touch-btn.system[data-gba-key="SELECT"] { left:50%; transform:translateX(-108%); }
+  .system-row .touch-btn.system[data-gba-key="START"] { left:50%; transform:translateX(8%); }
+  .system-row .led2 { display:none; }
 }
