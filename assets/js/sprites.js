@@ -4,14 +4,14 @@
   // Sprites du joueur distant : planches d'images fournies par Emil
   // (fan-art, pas de contenu extrait d'une ROM), découpées en
   // assets/img/remote-boy.png et remote-girl.png.
-  // Format : 3 frames de marche x 4 directions, cellules 48x96.
+  // Format : 3 frames de marche x 4 directions, cellules 16x24.
   // Le choix se fait selon le genre lu dans la partie de l'ami
   // (friend.sexe : 0 = garçon, 1 = fille). Repli : silhouette simple
   // tant que l'image n'est pas chargée.
 
-  const CELL_W = 48;
-  const CELL_H = 96;
-  const FEET = 93;                       // ligne des pieds dans la cellule
+  const CELL_W = 16;
+  const CELL_H = 24;
+  const FEET = 23;                       // ligne des pieds dans la cellule
   const ROWS = { down: 0, left: 1, right: 2, up: 3 };
   const CYCLE = [0, 1, 2, 1];            // cycle de marche ; frame 1 = immobile
   const TILE = 32;                       // une case de jeu sur le canvas (16 px x SCALE 2)
@@ -49,7 +49,7 @@
     // ombre au sol
     ctx.fillStyle = "rgba(0,0,0,0.35)";
     ctx.beginPath();
-    ctx.ellipse(x + TILE / 2, y + TILE - 3, 13, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + TILE / 2, y + TILE - 3, 7, 3, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // pieds alignés sur le bas de la case, sprite centré horizontalement
