@@ -188,6 +188,7 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
   .mobile-controls {
     display:block;
     margin-top:auto;
+    margin-bottom:14px;        /* remonte la coque du bas de l'ecran */
     user-select:none;
     -webkit-user-select:none;
     touch-action:none;
@@ -222,7 +223,7 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
     text-transform:uppercase;
   }
 
-  .pad-row { display:flex; justify-content:space-between; align-items:center; padding:4px 2px 2px; }
+  .pad-row { display:flex; justify-content:space-between; align-items:center; padding:10px 4px 4px; }
 
   .dpad {
     position:relative;
@@ -247,14 +248,14 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
   .d.down   { grid-area:3/2; border-radius:0 0 12px 12px; }
   .d.is-active { filter:brightness(.9); box-shadow:0 1px 0 var(--creme-ombre), inset 0 2px 3px rgba(0,0,0,.2); }
 
-  .ab { display:flex; gap:14px; align-items:center; transform:rotate(-14deg); padding-right:4px; }
+  .ab { display:flex; gap:22px; align-items:center; transform:rotate(-14deg); padding-right:4px; }
   .touch-btn.action { width:62px; height:62px; font-size:.85rem; }
   .touch-btn.action.a { transform:translateY(-12px); }
   .touch-btn.action.b { transform:translateY(12px); }
   .touch-btn.action.a.is-active { transform:translateY(-10px) scale(.96); }
   .touch-btn.action.b.is-active { transform:translateY(14px) scale(.96); }
 
-  .system-row { display:flex; justify-content:center; align-items:center; gap:14px; margin-top:4px; }
+  .system-row { display:flex; justify-content:center; align-items:center; gap:22px; margin-top:10px; }
   .touch-btn.system {
     min-width:76px;
     height:32px;
