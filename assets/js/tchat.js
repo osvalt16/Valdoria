@@ -14,6 +14,7 @@
   const CLE_AMIS = "valdoria.tagsAmis";
   const FORMAT_TAG = /^.{1,12}#\d{4}$/;
   const MAX_AMIS = 20;
+  const DUREE_MS = 5 * 60 * 1000;   // un message vit 5 minutes puis s'efface
 
   let db = null;
   let pseudoFn = null;
@@ -137,13 +138,33 @@
     rendMessages();
   }
 
-  function ajoute(quel, d) {
+  function ajoute(quel, s) {
+    const d = s.val();
     if (!d || !d.nom || !d.texte) return;
+    // déjà périmé : on le retire aussi de la base (autorisé par les règles)
+    if ((d.t || 0) < Date.now() - DUREE_MS) { s.ref.remove().catch(() => {}); return; }
+    d._ref = s.ref;
     const h = historiques[quel];
     h.push(d);
     h.sort((a, b) => (a.t || 0) - (b.t || 0));   // plusieurs flux amis fusionnés
     if (h.length > 80) h.splice(0, h.length - 80);
     if (canal === quel) rendMessages();
+  }
+
+  // efface au fil de l'eau les messages de plus de 5 minutes, à l'écran
+  // et dans la base (le premier client qui les voit s'en charge)
+  function purgePerimes() {
+    const limite = Date.now() - DUREE_MS;
+    let change = false;
+    for (const quel of ["general", "amis"]) {
+      const h = historiques[quel];
+      while (h.length && (h[0].t || 0) < limite) {
+        const d = h.shift();
+        if (d._ref) d._ref.remove().catch(() => {});
+        if (canal === quel) change = true;
+      }
+    }
+    if (change) rendMessages();
   }
 
   function abonneAmis() {
@@ -154,7 +175,7 @@
     const tags = (monTag ? [monTag] : []).concat(amis).slice(0, MAX_AMIS + 1);
     for (const tag of tags) {
       const r = db.ref("monde/tchatAmis/" + cle(tag)).limitToLast(30);
-      r.on("child_added", s => ajoute("amis", s.val()));
+      r.on("child_added", s => ajoute("amis", s));
       refs.push(r);
     }
   }
@@ -174,8 +195,9 @@
   function connect(base, pseudo) {
     db = base;
     pseudoFn = pseudo;
-    db.ref("monde/tchat").limitToLast(50).on("child_added", s => ajoute("general", s.val()));
+    db.ref("monde/tchat").limitToLast(50).on("child_added", s => ajoute("general", s));
     abonneAmis();
+    setInterval(purgePerimes, 10000);
 
     isoleClavier($("tchatInput"));
     isoleClavier($("tagAmiInput"));
