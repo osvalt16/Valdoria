@@ -69,16 +69,27 @@
     </div>
 
     <div class="mobile-controls" aria-label="Contrôles tactiles">
-      <div class="mobile-buttons">
+      <div class="shoulder-row">
         <button type="button" class="touch-btn shoulder" data-gba-key="L">L</button>
         <button type="button" class="touch-btn shoulder" data-gba-key="R">R</button>
-        <button type="button" class="touch-btn action b" data-gba-key="B">B</button>
-        <button type="button" class="touch-btn action a" data-gba-key="A">A</button>
+      </div>
+      <div class="pad-row">
+        <div class="dpad" id="dpadZone" aria-label="Croix directionnelle">
+          <span class="d up" data-dir="UP">▲</span>
+          <span class="d left" data-dir="LEFT">◀</span>
+          <span class="d centre"></span>
+          <span class="d right" data-dir="RIGHT">▶</span>
+          <span class="d down" data-dir="DOWN">▼</span>
+        </div>
+        <div class="ab">
+          <button type="button" class="touch-btn action b" data-gba-key="B">B</button>
+          <button type="button" class="touch-btn action a" data-gba-key="A">A</button>
+        </div>
+      </div>
+      <div class="system-row">
         <button type="button" class="touch-btn system" data-gba-key="SELECT">Select</button>
         <button type="button" class="touch-btn system" data-gba-key="START">Start</button>
-      </div>
-      <div class="touch-joystick" id="touchJoystick" aria-label="Joystick">
-        <span class="joystick-knob"></span>
+        <span class="led2"></span>
       </div>
     </div>
   </section>
