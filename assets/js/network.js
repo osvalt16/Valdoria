@@ -93,6 +93,8 @@
     joueursRef.on("child_changed", s => { if (s.key !== monId) majJoueur(s.key, s.val()); });
     joueursRef.on("child_removed", s => { delete state.joueurs[s.key]; majStatut(); });
 
+    if (window.Valdoria.tchat) window.Valdoria.tchat.connect(db, pseudo);
+
     db.ref(".info/connected").on("value", s => {
       if (s.val()) majStatut();
       else setStatus("Connexion au monde perdue, reconnexion…");
