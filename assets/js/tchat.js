@@ -60,6 +60,8 @@
     ligne.className = "tchat-ligne";
     const qui = document.createElement("strong");
     qui.textContent = d.nom + " : ";
+    // amis (et soi-même) en rose, le reste en bleu foncé
+    if (d.tag && (d.tag === monTag || amis.includes(d.tag))) qui.classList.add("ami");
     if (d.tag) qui.title = d.tag;
     ligne.appendChild(qui);
     ligne.appendChild(document.createTextNode(d.texte));
@@ -92,10 +94,11 @@
     $("tchatOngletGeneral").classList.toggle("actif", canal === "general");
     $("tchatOngletAmis").classList.toggle("actif", canal === "amis");
 
-    // entête : mon tag + bouton copier
+    // panneau options : mon tag + bouton copier
     const info = $("tchatCodeInfo");
     info.textContent = "";
-    if (canal === "amis" && monTag) {
+    if (!monTag) info.textContent = "Ton tag ami apparaîtra quand ta partie sera chargée.";
+    if (monTag) {
       info.appendChild(document.createTextNode("Mon tag : " + monTag + " "));
       const copier = document.createElement("button");
       copier.type = "button";
@@ -108,9 +111,6 @@
       info.appendChild(copier);
     }
 
-    // rangée de gestion des amis (visible seulement dans l'onglet Amis)
-    const gestion = $("tchatGestion");
-    gestion.hidden = canal !== "amis";
     const liste = $("tagAmiListe");
     liste.textContent = "";
     for (const tag of amis) {
@@ -196,7 +196,7 @@
         ? db.ref("monde/tchat")
         : db.ref("monde/tchatAmis/" + cle(monTag));
       ref.push({
-        nom: pseudoFn(), texte: texte, tag: canal === "amis" ? monTag : null,
+        nom: pseudoFn(), texte: texte, tag: monTag || null,
         t: firebase.database.ServerValue.TIMESTAMP
       });
       champ.value = "";
