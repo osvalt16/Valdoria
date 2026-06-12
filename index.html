@@ -2,207 +2,87 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Valdoria — Aventure à deux</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --rouge:#e3350d; --rouge2:#b71c00; --or:#ffcb05;
-    --violet:#7b5cc6; --violet2:#5a3ba8; --violet3:#46309c;
-    --creme:#ece8f2; --creme2:#cfc8dd;
-    --fond:#16101f; --panneau:#f8f6f0; --bordure:#5a5a8c; --texte:#2e2e48;
-    --ami:#3c78ff;
-  }
-  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html, body { margin:0; background:var(--fond); color:#fff;
-    font-family:system-ui,sans-serif; overscroll-behavior:none; }
-  body { min-height:100vh; touch-action:manipulation; user-select:none; -webkit-user-select:none; }
-  .px { font-family:"Press Start 2P", monospace; }
-
-  /* ---------- ÉCRAN D'ACCUEIL ---------- */
-  #setup { max-width:440px; margin:0 auto; padding:36px 20px; text-align:center; }
-  .pokeball { width:64px; height:64px; margin:0 auto 18px; border-radius:50%;
-    background:linear-gradient(to bottom, var(--rouge) 0 45%, #1a1a1a 45% 55%, #fff 55% 100%);
-    position:relative; box-shadow:0 6px 18px rgba(227,53,13,.45); }
-  .pokeball::after { content:""; position:absolute; inset:0; margin:auto; width:18px; height:18px;
-    background:#fff; border:4px solid #1a1a1a; border-radius:50%; }
-  #setup h1 { font-family:"Press Start 2P", monospace; font-size:1.5rem; margin:0 0 6px;
-    color:var(--or); text-shadow:2px 2px 0 var(--rouge), 4px 4px 0 rgba(0,0,0,.4); letter-spacing:2px; }
-  #setup .sous { color:#b9aecb; font-size:.85rem; margin:0 0 24px; }
-  #setup input[type=text] { width:100%; padding:13px; border-radius:10px; border:2px solid var(--bordure);
-    background:var(--panneau); color:var(--texte); text-align:center; font-size:1rem; margin-bottom:14px; outline:none; }
-  .gros-btn { display:block; width:100%; padding:15px; border:none; border-radius:12px; cursor:pointer;
-    font-family:"Press Start 2P", monospace; font-size:.7rem; color:#fff; letter-spacing:1px;
-    background:linear-gradient(180deg, var(--rouge), var(--rouge2));
-    box-shadow:0 4px 0 #7e1300, 0 8px 16px rgba(0,0,0,.4); margin-bottom:14px; }
-  .gros-btn:active { transform:translateY(3px); box-shadow:0 1px 0 #7e1300; }
-  .petit-lien { color:#8f82a6; font-size:.78rem; text-decoration:underline; cursor:pointer; background:none; border:none; }
-  .note { color:#8f82a6; font-size:.75rem; line-height:1.5; margin-top:18px; }
-
-  /* ---------- CONSOLE ---------- */
-  #play { display:none; max-width:560px; margin:0 auto; }
-  #titrebar { text-align:center; padding:10px 0 6px; }
-  #titrebar span { font-family:"Press Start 2P", monospace; font-size:.8rem; color:var(--or);
-    text-shadow:1px 1px 0 var(--rouge); letter-spacing:2px; }
-
-  .bezel { background:#0d0b12; border-radius:18px 18px 6px 6px; padding:10px 10px 6px; margin:0 8px; }
-  #screenWrap { position:relative; width:100%; aspect-ratio:3/2; background:#000; border-radius:6px; overflow:hidden; }
-  #screen, #overlay { position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; }
-  #overlay { pointer-events:none; }
-  .ledrow { display:flex; align-items:center; gap:6px; padding:5px 4px 2px;
-    color:#5d5570; font-size:.6rem; letter-spacing:1px; }
-  .ledrow .led { width:8px; height:8px; border-radius:50%; background:#39d353; box-shadow:0 0 6px #39d353; }
-  #friendInfo { text-align:center; color:var(--ami); font-size:.82rem; min-height:1.2em; margin:6px 8px; font-weight:600; }
-
-  /* ---------- MANETTE ---------- */
-  .shell { background:linear-gradient(180deg, var(--violet) 0%, var(--violet2) 70%, var(--violet3) 100%);
-    border-radius:26px 26px 34px 34px; margin:2px 8px 14px; padding:12px 14px 16px;
-    box-shadow:0 10px 26px rgba(0,0,0,.55), inset 0 2px 2px rgba(255,255,255,.25); }
-  .shoulders { display:flex; justify-content:space-between; margin:-24px 6px 4px; }
-  .shl { width:84px; height:26px; border:none; border-radius:13px 13px 6px 6px; cursor:pointer;
-    background:linear-gradient(180deg,#efeaf6,var(--creme2)); color:#7a7090;
-    font-family:"Press Start 2P",monospace; font-size:.55rem;
-    box-shadow:0 3px 0 #9d93b5, 0 5px 8px rgba(0,0,0,.35); }
-  .padrow { display:flex; justify-content:space-between; align-items:center; padding:14px 6px 8px; }
-
-  .dpad { display:grid; grid-template-columns:repeat(3,52px); grid-template-rows:repeat(3,52px); }
-  .d { border:none; cursor:pointer; background:linear-gradient(180deg,#f2eef8,var(--creme2));
-    color:#8d83a5; font-size:1rem; display:flex; align-items:center; justify-content:center;
-    box-shadow:0 3px 0 #9d93b5, 0 5px 8px rgba(0,0,0,.3); }
-  .d.up    { grid-area:1/2; border-radius:12px 12px 0 0; }
-  .d.left  { grid-area:2/1; border-radius:12px 0 0 12px; }
-  .d.center{ grid-area:2/2; box-shadow:none; background:var(--creme2); position:relative; }
-  .d.center::after { content:""; position:absolute; inset:0; margin:auto; width:22px; height:22px;
-    border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff, #b9afcc); }
-  .d.right { grid-area:2/3; border-radius:0 12px 12px 0; }
-  .d.down  { grid-area:3/2; border-radius:0 0 12px 12px; }
-
-  .ab { display:flex; gap:16px; align-items:center; transform:rotate(-12deg); }
-  .round { width:64px; height:64px; border:none; border-radius:50%; cursor:pointer;
-    background:radial-gradient(circle at 35% 28%, #ffffff, var(--creme2) 70%);
-    color:#8d83a5; font-family:"Press Start 2P",monospace; font-size:.9rem;
-    box-shadow:0 4px 0 #9d93b5, 0 7px 10px rgba(0,0,0,.35); }
-  .round.b { margin-top:22px; }
-  .bottomrow { display:flex; justify-content:center; align-items:center; gap:14px; margin-top:10px; }
-  .small { min-width:74px; padding:9px 10px; border:none; border-radius:16px; cursor:pointer;
-    background:linear-gradient(180deg,#efeaf6,var(--creme2)); color:#7a7090;
-    font-family:"Press Start 2P",monospace; font-size:.5rem;
-    box-shadow:0 3px 0 #9d93b5, 0 5px 8px rgba(0,0,0,.3); }
-  .shell .on, .shl:active, .d:active, .round:active, .small:active {
-    transform:translateY(2px); box-shadow:0 1px 0 #9d93b5; filter:brightness(.96); }
-  .shell .led2 { width:10px; height:10px; border-radius:50%; background:#39d353;
-    box-shadow:0 0 8px #39d353; margin-left:6px; }
-
-  /* ---------- MENU (panneau style boîte de dialogue FRLG) ---------- */
-  #menuSheet { display:none; margin:0 8px 30px; background:var(--panneau); color:var(--texte);
-    border:3px solid var(--bordure); border-radius:10px; padding:16px; }
-  #menuSheet.ouvert { display:block; }
-  #menuSheet h3 { font-family:"Press Start 2P",monospace; font-size:.65rem; color:var(--rouge2);
-    margin:14px 0 8px; letter-spacing:1px; }
-  #menuSheet h3:first-child { margin-top:0; }
-  .ligne { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-  .mbtn { padding:11px 14px; border:none; border-radius:9px; cursor:pointer; color:#fff;
-    font-family:"Press Start 2P",monospace; font-size:.55rem; letter-spacing:1px;
-    background:linear-gradient(180deg, var(--rouge), var(--rouge2)); box-shadow:0 3px 0 #7e1300; }
-  .mbtn:active { transform:translateY(2px); box-shadow:0 1px 0 #7e1300; }
-  .mbtn:disabled { background:#b9b2c6; box-shadow:0 3px 0 #908aa0; cursor:default; }
-  .mbtn.bleu { background:linear-gradient(180deg,#3c78ff,#2255cc); box-shadow:0 3px 0 #163a8e; }
-  .mbtn.bleu:active { box-shadow:0 1px 0 #163a8e; }
-  #joinCode { padding:11px; border-radius:9px; border:2px solid var(--bordure); background:#fff;
-    color:var(--texte); width:96px; text-align:center; font-size:1.05rem;
-    text-transform:uppercase; letter-spacing:4px; }
-  #netStatus { margin:10px 0 0; min-height:1.2em; color:var(--rouge2); font-weight:700; font-size:.9rem; }
-  .keys { color:#7a7494; font-size:.74rem; margin-top:10px; }
-  #debugToggle { color:#9a93ad; font-size:.7rem; cursor:pointer; text-decoration:underline; }
-  #debugPanel { display:none; font-family:monospace; font-size:.75rem; color:#555; white-space:pre; margin-top:8px; }
-
-  /* ---------- DESKTOP ---------- */
-  @media (min-width: 900px) {
-    #play { max-width:780px; }
-    #menuSheet { display:block; }     /* menu toujours visible sur grand écran */
-  }
-</style>
+<link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
 
-<section id="setup">
-  <div class="pokeball"></div>
+<header>
   <h1>VALDORIA</h1>
-  <p class="sous">Aventure à deux — chacun sa ROM, un seul monde.</p>
-  <input type="text" id="playerName" placeholder="Ton pseudo" maxlength="12">
-  <button class="gros-btn" onclick="document.getElementById('romInput').click()">▶ CHOISIR MA ROM</button>
-  <input type="file" id="romInput" accept=".gba,.gz" hidden>
-  <button class="petit-lien" onclick="document.getElementById('savInput').click()">Démarrer avec une sauvegarde (.sav)</button>
-  <input type="file" id="savInput" accept=".sav" hidden>
-  <p class="note">Ta ROM reste sur ton appareil : elle n'est jamais envoyée sur internet.<br>
-  Chaque joueur fournit sa propre ROM (Rouge Feu ou un hack basé dessus).</p>
-</section>
+  <p>Aventure à deux — chacun sa ROM, un seul monde.</p>
+</header>
 
-<main id="play">
-  <div id="titrebar"><span>VALDORIA</span></div>
+<main>
+  <section id="setup">
+    <div class="pokeball"></div>
+    <input type="text" id="playerName" placeholder="Ton pseudo" maxlength="12"><br>
+    <label class="btn">Choisir ma ROM (.gba)<input type="file" id="romInput" accept=".gba" hidden></label>
+    <p class="note">Ta ROM reste sur ton ordinateur, elle n'est jamais envoyée sur internet.<br>
+    Chaque joueur fournit sa propre ROM (Rouge Feu ou un hack basé dessus).</p>
+    <label class="btn small secondary">Utiliser une sauvegarde (.sav) — optionnel<input type="file" id="savInput" accept=".sav" hidden></label>
+  </section>
 
-  <div class="bezel">
+  <section id="play">
+    <div class="mobile-hud" aria-label="Menus mobiles">
+      <button type="button" id="mobileValdoriaBtn">Valdoria</button>
+      <button type="button" id="mobileGameMenuBtn" data-gba-key="START">Menu jeu</button>
+    </div>
+
     <div id="screenWrap">
-      <canvas id="screen" width="720" height="480"></canvas>
-      <canvas id="overlay" width="720" height="480"></canvas>
+      <canvas id="screen" width="480" height="320"></canvas>
+      <canvas id="overlay" width="480" height="320"></canvas>
     </div>
-    <div class="ledrow"><span class="led"></span> POWER</div>
-  </div>
-  <p id="friendInfo"></p>
+    <p id="friendInfo"></p>
 
-  <div class="shell">
-    <div class="shoulders">
-      <button class="shl" data-key="65">L</button>
-      <button class="shl" data-key="83">R</button>
-    </div>
-    <div class="padrow">
-      <div class="dpad">
-        <button class="d up" data-key="38">▲</button>
-        <button class="d left" data-key="37">◀</button>
-        <div class="d center"></div>
-        <button class="d right" data-key="39">▶</button>
-        <button class="d down" data-key="40">▼</button>
+    <div class="mobile-backdrop" id="mobileBackdrop"></div>
+    <div class="valdoria-options" id="valdoriaOptions">
+      <div class="mobile-drawer-head">
+        <strong>Valdoria</strong>
+        <button type="button" id="closeValdoriaMenu">Fermer</button>
       </div>
-      <div class="ab">
-        <button class="round b" data-key="88">B</button>
-        <button class="round a" data-key="90">A</button>
+
+      <div class="panel">
+        <div>
+          <button id="hostBtn" disabled>Créer un salon</button>
+          <input id="joinCode" placeholder="CODE" maxlength="4">
+          <button id="joinBtn" disabled>Rejoindre</button>
+        </div>
+        <p id="netStatus">Chargement du jeu…</p>
+      </div>
+
+      <div class="panel">
+        <button id="soundBtn">🔊 Activer le son</button>
+        <button id="pauseBtn">Pause</button>
+        <div class="save-actions">
+          <button id="localSaveBtn" disabled>Écraser sauvegarde locale</button>
+          <button id="localLoadBtn" disabled>Charger locale</button>
+          <label class="btn control secondary">Importer .sav<input type="file" id="playSavInput" accept=".sav" hidden></label>
+          <button id="saveBtn" disabled>Exporter .sav</button>
+        </div>
+        <p id="saveStatus" class="save-status">Aucune ROM chargée.</p>
+        <p class="keys">Clavier : flèches = croix · Z = A · X = B · Entrée = Start · \ = Select · A/S = L/R</p>
+        <span id="debugToggle">debug</span>
+        <div id="debugPanel"></div>
       </div>
     </div>
-    <div class="bottomrow">
-      <button class="small" id="menuBtn">MENU</button>
-      <button class="small" data-key="220">SELECT</button>
-      <button class="small" data-key="13">START</button>
-      <span class="led2"></span>
-    </div>
-  </div>
 
-  <div id="menuSheet">
-    <h3>Jouer avec un ami</h3>
-    <div class="ligne">
-      <button class="mbtn bleu" id="hostBtn" disabled>Créer un salon</button>
-      <input id="joinCode" placeholder="CODE" maxlength="4">
-      <button class="mbtn bleu" id="joinBtn" disabled>Rejoindre</button>
+    <div class="mobile-controls" aria-label="Contrôles tactiles">
+      <div class="mobile-buttons">
+        <button type="button" class="touch-btn shoulder" data-gba-key="L">L</button>
+        <button type="button" class="touch-btn shoulder" data-gba-key="R">R</button>
+        <button type="button" class="touch-btn action b" data-gba-key="B">B</button>
+        <button type="button" class="touch-btn action a" data-gba-key="A">A</button>
+        <button type="button" class="touch-btn system" data-gba-key="SELECT">Select</button>
+        <button type="button" class="touch-btn system" data-gba-key="START">Start</button>
+      </div>
+      <div class="touch-joystick" id="touchJoystick" aria-label="Joystick">
+        <span class="joystick-knob"></span>
+      </div>
     </div>
-    <p id="netStatus">Chargement du jeu…</p>
-
-    <h3>Partie</h3>
-    <div class="ligne">
-      <button class="mbtn" id="soundBtn">🔊 Son</button>
-      <button class="mbtn" id="pauseBtn">Pause</button>
-    </div>
-
-    <h3>Sauvegarde</h3>
-    <div class="ligne">
-      <button class="mbtn" id="saveBtn">💾 Sauvegarder (.sav)</button>
-      <button class="mbtn" id="loadBtn">📂 Charger (.sav)</button>
-      <input type="file" id="savInput2" accept=".sav" hidden>
-    </div>
-
-    <p class="keys">Clavier : flèches = croix · Z = A · X = B · Entrée = Start · \ = Select · A/S = L/R</p>
-    <span id="debugToggle">debug</span>
-    <div id="debugPanel"></div>
-  </div>
+  </section>
 </main>
 
 <!-- Émulateur gbajs2 (BSD) — code original, aucune ROM incluse -->
@@ -226,299 +106,14 @@
 <!-- Réseau pair-à-pair -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 
-<script>
-"use strict";
-const $ = id => document.getElementById(id);
-const setStatus = m => { $("netStatus").textContent = m; };
-
-/* ================= ÉMULATEUR ================= */
-let gba = null;
-let pendingSave = null;     // .sav à appliquer au prochain démarrage
-let currentRomFile = null;  // ROM gardée en mémoire pour pouvoir recharger une sauvegarde
-let loopStarted = false;
-
-function bootEmulator(romFile) {
-  if (gba) { try { gba.pause(); } catch (e) {} }
-
-  gba = new GameBoyAdvance();
-  gba.keypad.eatInput = true;
-  gba.logLevel = gba.LOG_ERROR;
-  gba.setLogger((level, error) => console.error("[gba]", error));
-
-  // CORRECTIF 1 : le renderer par défaut dépend d'un worker introuvable depuis le CDN
-  // → écran noir permanent. On force le renderer logiciel (tout en JS, sans worker).
-  gba.video.renderPath = new GameBoyAdvanceSoftwareRenderer();
-
-  gba.setCanvas($("screen"));
-  gba.setBios(biosBin);
-  gba.audio.masterEnable = false;
-
-  // CORRECTIF 2 : Rouge Feu appelle IntrWait avec les IRQ masquées ; le BIOS de
-  // remplacement ne les réactive pas → CPU bloqué à 0x1c pour toujours.
-  // On libère les interruptions en attente avant chaque frame, comme le vrai BIOS.
-  const avance = gba.advanceFrame.bind(gba);
-  gba.advanceFrame = function () {
-    if ((gba.cpu.gprs[15] >>> 0) < 0x4000 && gba.cpu.cpsrI) {
-      try {
-        if (gba.mmu.loadU16(0x04000200) & gba.mmu.loadU16(0x04000202))
-          gba.cpu.cpsrI = false;
-      } catch (e) { /* ignore */ }
-    }
-    avance();
-  };
-
-  gba.loadRomFromFile(romFile, ok => {
-    if (!ok) { setStatus("Impossible de lire cette ROM."); return; }
-    if (pendingSave) { gba.loadSavedataFromFile(pendingSave); pendingSave = null; }
-    gba.runStable();
-    setStatus("Prêt ! Crée un salon ou rejoins ton ami avec son code.");
-    $("hostBtn").disabled = false;
-    $("joinBtn").disabled = false;
-    if (!loopStarted) { loopStarted = true; startGameLoop(); }
-  });
-}
-
-/* fichier .gz accepté : décompressé localement avant lancement */
-async function fichierVersRom(f) {
-  if (!/\.gz$/i.test(f.name)) return f;
-  const buf = await new Response(f.stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
-  return new File([buf], f.name.replace(/\.gz$/i, ""));
-}
-
-$("savInput").addEventListener("change", e => { pendingSave = e.target.files[0] || null; });
-
-$("romInput").addEventListener("change", async e => {
-  const f = e.target.files[0];
-  if (!f) return;
-  currentRomFile = await fichierVersRom(f);
-  $("setup").style.display = "none";
-  $("play").style.display = "block";
-  bootEmulator(currentRomFile);
-});
-
-/* ---------- Son / Pause ---------- */
-$("soundBtn").addEventListener("click", () => {
-  gba.audio.masterEnable = !gba.audio.masterEnable;
-  if (gba.audio.masterEnable && gba.audio.context && gba.audio.context.state !== "running")
-    gba.audio.context.resume();
-  $("soundBtn").textContent = gba.audio.masterEnable ? "🔇 Couper" : "🔊 Son";
-});
-
-$("pauseBtn").addEventListener("click", () => {
-  if (gba.paused) { gba.runStable(); $("pauseBtn").textContent = "Pause"; }
-  else { gba.pause(); $("pauseBtn").textContent = "Reprendre"; }
-});
-
-/* ---------- Sauvegarde : téléchargement direct, fiable partout ---------- */
-$("saveBtn").addEventListener("click", () => {
-  const sram = gba.mmu.save;
-  if (!sram || !sram.buffer) { setStatus("Pas encore de sauvegarde — sauvegarde d'abord dans le jeu (menu → SAUVER)."); return; }
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([sram.buffer], { type: "application/octet-stream" }));
-  a.download = "valdoria.sav";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setStatus("Sauvegarde téléchargée : valdoria.sav");
-});
-
-/* ---------- Chargement d'une sauvegarde en cours de partie ---------- */
-$("loadBtn").addEventListener("click", () => $("savInput2").click());
-$("savInput2").addEventListener("change", e => {
-  const f = e.target.files[0];
-  if (!f || !currentRomFile) return;
-  pendingSave = f;
-  setStatus("Sauvegarde chargée — le jeu redémarre…");
-  bootEmulator(currentRomFile);   // redémarre la ROM avec la sauvegarde (le salon reste connecté)
-  e.target.value = "";
-});
-
-/* ================= MANETTE TACTILE ================= */
-document.querySelectorAll("[data-key]").forEach(el => {
-  const code = parseInt(el.dataset.key, 10);
-  const down = ev => { ev.preventDefault(); el.classList.add("on");
-    window.dispatchEvent(new KeyboardEvent("keydown", { keyCode: code })); };
-  const up = ev => { ev.preventDefault(); el.classList.remove("on");
-    window.dispatchEvent(new KeyboardEvent("keyup", { keyCode: code })); };
-  el.addEventListener("pointerdown", down);
-  el.addEventListener("pointerup", up);
-  el.addEventListener("pointerleave", up);
-  el.addEventListener("pointercancel", up);
-  el.addEventListener("contextmenu", ev => ev.preventDefault());
-});
-
-$("menuBtn").addEventListener("click", () => $("menuSheet").classList.toggle("ouvert"));
-
-/* ============ LECTURE DE LA POSITION (couche code) ============
-   Rouge Feu garde un pointeur vers le bloc de sauvegarde en RAM ;
-   au début de ce bloc : position X, Y puis n° de map. L'adresse du
-   pointeur varie selon les versions → candidats connus + scan auto. */
-const urlSb1 = new URLSearchParams(location.search).get("sb1");
-const SB1_CANDIDATES = urlSb1 ? [parseInt(urlSb1, 16)] : [0x03005008, 0x0300500C, 0x03005010, 0x03004F58];
-let sb1Found = null;
-let lastScan = 0;
-
-function lirePosA(addr) {
-  const ptr = gba.mmu.load32(addr) >>> 0;
-  if (ptr < 0x02000000 || ptr >= 0x02040000) return null;
-  const x = gba.mmu.loadU16(ptr);
-  const y = gba.mmu.loadU16(ptr + 2);
-  const g = gba.mmu.loadU8(ptr + 4);
-  const m = gba.mmu.loadU8(ptr + 5);
-  if (x < 1 || x > 1500 || y < 1 || y > 1500 || g > 60 || m > 90) return null;
-  return { addr, ptr, x, y, g, m };
-}
-
-function scanSaveBlock() {
-  for (let a = 0x03000000; a < 0x03007FF8; a += 4) {
-    try {
-      const p2 = gba.mmu.load32(a + 4) >>> 0;
-      if (p2 < 0x02000000 || p2 >= 0x02040000) continue;
-      const pos = lirePosA(a);
-      if (pos) return a;
-    } catch (e) { /* zone non mappée */ }
-  }
-  return null;
-}
-
-function readMyPos() {
-  if (!gba || !gba.rom) return null;
-  try {
-    if (sb1Found) {
-      const pos = lirePosA(sb1Found);
-      if (pos) return pos;
-      sb1Found = null;
-    }
-    for (const addr of SB1_CANDIDATES) {
-      const pos = lirePosA(addr);
-      if (pos) { sb1Found = addr; return pos; }
-    }
-    const now = Date.now();
-    if (now - lastScan > 3000) {
-      lastScan = now;
-      const a = scanSaveBlock();
-      if (a) { sb1Found = a; return lirePosA(a); }
-    }
-  } catch (err) { /* lecture impossible pour l'instant */ }
-  return null;
-}
-
-/* ================= RÉSEAU (P2P) ================= */
-const PREFIX = "valdoria-coop-";
-let peer = null, conn = null, myPos = null;
-const friend = { connected:false, name:"Ami", g:-1, m:-1, tx:0, ty:0, dx:0, dy:0, visible:false };
-
-const myName = () => $("playerName").value.trim() || "Joueur";
-function randCode() {
-  const c = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  return Array.from({length:4}, () => c[Math.floor(Math.random()*c.length)]).join("");
-}
-
-function setupConn(c) {
-  conn = c;
-  c.on("open", () => { c.send({ t:"hello", name: myName() }); setStatus("Connecté ! Vous partagez le même monde."); });
-  c.on("data", d => {
-    if (d.t === "hello") friend.name = d.name;
-    else if (d.t === "pos") {
-      friend.connected = true;
-      friend.g = d.g; friend.m = d.m; friend.tx = d.x; friend.ty = d.y;
-    }
-  });
-  c.on("close", () => {
-    friend.connected = false; friend.visible = false; conn = null;
-    setStatus("Ton ami s'est déconnecté.");
-    $("friendInfo").textContent = "";
-  });
-}
-
-$("hostBtn").addEventListener("click", () => {
-  const code = randCode();
-  peer = new Peer(PREFIX + code);
-  peer.on("open", () => setStatus("Salon créé ! Donne ce code à ton ami : " + code));
-  peer.on("connection", setupConn);
-  peer.on("error", e => setStatus("Erreur réseau : " + e.type));
-  $("hostBtn").disabled = true; $("joinBtn").disabled = true;
-});
-
-$("joinBtn").addEventListener("click", () => {
-  const code = $("joinCode").value.trim().toUpperCase();
-  if (code.length !== 4) { setStatus("Entre le code à 4 caractères donné par ton ami."); return; }
-  peer = new Peer();
-  peer.on("open", () => { setStatus("Connexion au salon " + code + "…"); setupConn(peer.connect(PREFIX + code)); });
-  peer.on("error", e => setStatus("Erreur : " + e.type + " (code incorrect ?)"));
-  $("hostBtn").disabled = true; $("joinBtn").disabled = true;
-});
-
-/* ================= BOUCLE DE JEU ================= */
-function startGameLoop() {
-  setInterval(() => {
-    myPos = readMyPos();
-    if (myPos && conn && conn.open)
-      conn.send({ t:"pos", x:myPos.x, y:myPos.y, g:myPos.g, m:myPos.m });
-    updateDebug();
-  }, 125);
-  requestAnimationFrame(drawOverlay);
-}
-
-/* Position du joueur à l'écran (Rouge Feu centre la caméra sur lui) */
-const SCALE = 3, PLAYER_PX = 112, PLAYER_PY = 72;   // canvas 720x480 = 3x l'écran GBA
-
-function drawOverlay() {
-  const s = SCALE;
-  const ctx = $("overlay").getContext("2d");
-  ctx.clearRect(0, 0, 240 * s, 160 * s);
-
-  if (friend.connected && myPos) {
-    if (friend.g === myPos.g && friend.m === myPos.m) {
-      const px = PLAYER_PX + (friend.tx - myPos.x) * 16;
-      const py = PLAYER_PY + (friend.ty - myPos.y) * 16;
-      if (!friend.visible) { friend.dx = px; friend.dy = py; friend.visible = true; }
-      friend.dx += (px - friend.dx) * 0.25;
-      friend.dy += (py - friend.dy) * 0.25;
-
-      const X = friend.dx * s, Y = friend.dy * s;
-      if (X > -20 * s && X < 260 * s && Y > -20 * s && Y < 180 * s) {
-        ctx.fillStyle = "rgba(60,120,255,0.75)";          // fantôme de l'ami
-        ctx.beginPath();
-        ctx.roundRect(X + 3 * s, Y - 3 * s, 10 * s, 17 * s, 4 * s);
-        ctx.fill();
-        ctx.fillStyle = "rgba(255,255,255,0.9)";          // yeux
-        ctx.fillRect(X + 5.5 * s, Y + s, 1.5 * s, 2 * s);
-        ctx.fillRect(X + 9 * s, Y + s, 1.5 * s, 2 * s);
-        ctx.font = "bold " + 6 * s + "px sans-serif";     // pseudo
-        ctx.textAlign = "center";
-        ctx.lineWidth = 1.5 * s; ctx.strokeStyle = "rgba(0,0,0,0.8)";
-        ctx.strokeText(friend.name, X + 8 * s, Y - 6 * s);
-        ctx.fillStyle = "#fff";
-        ctx.fillText(friend.name, X + 8 * s, Y - 6 * s);
-      }
-      $("friendInfo").textContent = "";
-    } else {
-      friend.visible = false;
-      $("friendInfo").textContent = "📍 " + friend.name + " explore une autre zone…";
-    }
-  } else if (conn && conn.open && !myPos) {
-    $("friendInfo").textContent = "⏳ Recherche de ta position en mémoire… (sois sur la map, en train de marcher)";
-  } else if (conn && conn.open && myPos && !friend.connected) {
-    $("friendInfo").textContent = "⏳ En attente de la position de " + friend.name + "…";
-  }
-  requestAnimationFrame(drawOverlay);
-}
-
-/* ================= DEBUG ================= */
-$("debugToggle").addEventListener("click", () => {
-  const p = $("debugPanel");
-  p.style.display = p.style.display === "block" ? "none" : "block";
-});
-function updateDebug() {
-  const p = $("debugPanel");
-  if (p.style.display !== "block") return;
-  const hex = n => "0x" + (n >>> 0).toString(16).toUpperCase();
-  p.textContent = myPos
-    ? `moi  : map ${myPos.g}.${myPos.m}  x=${myPos.x} y=${myPos.y}  (sb1 ${hex(myPos.addr)} → ${hex(myPos.ptr)})\n`
-      + (friend.connected ? `ami  : map ${friend.g}.${friend.m}  x=${friend.tx} y=${friend.ty}` : "ami  : non connecté")
-    : "position illisible — la ROM utilise peut-être d'autres adresses (essaie ?sb1=0x... dans l'URL)";
-}
-</script>
+<script src="assets/js/dom.js"></script>
+<script src="assets/js/state.js"></script>
+<script src="assets/js/emulator.js"></script>
+<script src="assets/js/position.js"></script>
+<script src="assets/js/network.js"></script>
+<script src="assets/js/overlay.js"></script>
+<script src="assets/js/debug.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/touch-controls.js"></script>
 </body>
 </html>
