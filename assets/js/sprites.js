@@ -37,7 +37,7 @@
     if (!im.complete || !im.naturalWidth) { drawFallback(ctx, x, y); return; }
 
     const moving = Date.now() < friend.movingUntil;
-    const frame = moving ? CYCLE[Math.floor(Date.now() / 140) % CYCLE.length] : 1;
+    const frame = moving ? CYCLE[Math.floor(Date.now() / 100) % CYCLE.length] : 1;
     const row = ROWS[friend.direction] !== undefined ? ROWS[friend.direction] : 0;
 
     ctx.fillStyle = "rgba(0,0,0,0.35)";
