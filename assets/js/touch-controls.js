@@ -4,7 +4,6 @@
   const { $ } = window.Valdoria.dom;
   const state = window.Valdoria.state;
   const directionKeys = ["UP", "RIGHT", "DOWN", "LEFT"];
-  let joystickPointer = null;
 
   function keypad() {
     return state.gba && state.gba.keypad ? state.gba.keypad : null;
@@ -23,6 +22,7 @@
     directionKeys.forEach(key => setKey(key, false));
   }
 
+  /* ----- boutons simples (A, B, L, R, Start, Select, Menu jeu) ----- */
   function bindTouchButton(button) {
     const key = button.dataset.gbaKey;
     if (!key) return;
@@ -46,57 +46,66 @@
       button.classList.remove("is-active");
       setKey(key, false);
     });
+    button.addEventListener("contextmenu", event => event.preventDefault());
   }
 
-  function updateJoystick(event) {
-    const stick = $("touchJoystick");
-    const knob = stick.querySelector(".joystick-knob");
-    const rect = stick.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const max = rect.width * 0.28;
-    const dx = Math.max(-max, Math.min(max, event.clientX - cx));
-    const dy = Math.max(-max, Math.min(max, event.clientY - cy));
-    const threshold = rect.width * 0.14;
+  /* ----- croix directionnelle ------------------------------------
+     Toute la zone est tactile : on peut maintenir une direction et
+     faire glisser le pouce pour tourner sans relâcher, comme sur
+     une vraie croix GBA. Petite zone morte au centre pour éviter
+     les changements de direction involontaires. */
+  let activeDir = null;
+  let dpadPointer = null;
 
-    releaseDirections();
-    if (Math.abs(dx) > Math.abs(dy)) {
-      if (Math.abs(dx) > threshold) setKey(dx > 0 ? "RIGHT" : "LEFT", true);
-    } else if (Math.abs(dy) > threshold) {
-      setKey(dy > 0 ? "DOWN" : "UP", true);
+  function dpadButton(dir) {
+    return document.querySelector('.dpad .d[data-dir="' + dir + '"]');
+  }
+
+  function applyDirection(dir) {
+    if (dir === activeDir) return;
+    if (activeDir) {
+      setKey(activeDir, false);
+      const old = dpadButton(activeDir);
+      if (old) old.classList.remove("is-active");
     }
-
-    knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    activeDir = dir;
+    if (dir) {
+      setKey(dir, true);
+      const el = dpadButton(dir);
+      if (el) el.classList.add("is-active");
+    }
   }
 
-  function resetJoystick() {
-    const stick = $("touchJoystick");
-    const knob = stick.querySelector(".joystick-knob");
-    joystickPointer = null;
-    releaseDirections();
-    knob.style.transform = "translate(-50%, -50%)";
+  function directionFromEvent(pad, event) {
+    const rect = pad.getBoundingClientRect();
+    const dx = event.clientX - (rect.left + rect.width / 2);
+    const dy = event.clientY - (rect.top + rect.height / 2);
+    if (Math.hypot(dx, dy) < rect.width * 0.12) return activeDir; // zone morte : on garde la direction
+    return Math.abs(dx) > Math.abs(dy)
+      ? (dx > 0 ? "RIGHT" : "LEFT")
+      : (dy > 0 ? "DOWN" : "UP");
   }
 
-  function bindJoystick() {
-    const stick = $("touchJoystick");
-    stick.addEventListener("pointerdown", event => {
+  function bindDpad() {
+    const pad = $("dpadZone");
+    if (!pad) return;
+
+    pad.addEventListener("pointerdown", event => {
       event.preventDefault();
-      joystickPointer = event.pointerId;
-      stick.setPointerCapture?.(event.pointerId);
-      updateJoystick(event);
+      dpadPointer = event.pointerId;
+      pad.setPointerCapture?.(event.pointerId);
+      applyDirection(directionFromEvent(pad, event));
     });
-    stick.addEventListener("pointermove", event => {
-      if (event.pointerId !== joystickPointer) return;
+    pad.addEventListener("pointermove", event => {
+      if (event.pointerId !== dpadPointer) return;
       event.preventDefault();
-      updateJoystick(event);
+      applyDirection(directionFromEvent(pad, event));
     });
-    stick.addEventListener("pointerup", event => {
-      if (event.pointerId !== joystickPointer) return;
-      event.preventDefault();
-      resetJoystick();
-    });
-    stick.addEventListener("pointercancel", resetJoystick);
-    stick.addEventListener("lostpointercapture", resetJoystick);
+    const end = () => { dpadPointer = null; applyDirection(null); };
+    pad.addEventListener("pointerup", end);
+    pad.addEventListener("pointercancel", end);
+    pad.addEventListener("lostpointercapture", end);
+    pad.addEventListener("contextmenu", event => event.preventDefault());
   }
 
   function toggleValdoriaMenu(open) {
@@ -111,10 +120,11 @@
   }
 
   document.querySelectorAll("[data-gba-key]").forEach(bindTouchButton);
-  bindJoystick();
+  bindDpad();
   bindMenus();
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
+      applyDirection(null);
       releaseDirections();
       ["A", "B", "L", "R", "START", "SELECT"].forEach(key => setKey(key, false));
     }

@@ -225,12 +225,65 @@
     // Le renderer par défaut dépend d'un worker introuvable depuis le CDN.
     gba.video.renderPath = new GameBoyAdvanceSoftwareRenderer();
 
+    // Son plus propre : l'audio d'origine ré-échantillonne au plus proche
+    // voisin (son métallique) et coupe net quand il manque d'échantillons
+    // (craquements). Ici : interpolation linéaire + fondu doux vers le
+    // silence en cas de manque, et volume légèrement baissé pour éviter
+    // la saturation des musiques.
+    if (gba.audio && gba.audio.context) {
+      gba.audio.masterVolume = 0.85;
+      gba.audio.audioProcess = function (e) {
+        const left = e.outputBuffer.getChannelData(0);
+        const right = e.outputBuffer.getChannelData(1);
+        if (!this.masterEnable || !this.buffers) {
+          left.fill(0); right.fill(0);
+          return;
+        }
+        let o = this.outputPointer;
+        let i = 0;
+        let lastL = 0, lastR = 0;
+        for (; i < this.bufferSize; ++i, o += this.resampleRatio) {
+          if (o >= this.maxSamples) o -= this.maxSamples;
+          const i0 = o | 0;
+          if (i0 === this.samplePointer) { ++this.backup; break; }
+          const i1 = (i0 + 1) & this.sampleMask;
+          if (i1 === this.samplePointer) {
+            lastL = left[i] = this.buffers[0][i0];
+            lastR = right[i] = this.buffers[1][i0];
+            continue;
+          }
+          const t = o - i0;
+          lastL = left[i] = this.buffers[0][i0] * (1 - t) + this.buffers[0][i1] * t;
+          lastR = right[i] = this.buffers[1][i0] * (1 - t) + this.buffers[1][i1] * t;
+        }
+        for (; i < this.bufferSize; ++i) {   // manque de samples : fondu, pas de clic
+          lastL *= 0.95; lastR *= 0.95;
+          left[i] = lastL; right[i] = lastR;
+        }
+        this.outputPointer = o;
+        ++this.totalSamples;
+      };
+    }
+
     gba.setCanvas($("screen"));
     gba.setBios(biosBin);
     gba.audio.masterEnable = false;
 
     // Rouge Feu peut rester bloqué dans IntrWait si les IRQ sont masquées.
     const avance = gba.advanceFrame.bind(gba);
+
+    // Saut de rendu adaptatif : si l'appareil ne tient pas 60 i/s (mobiles),
+    // on ne dessine qu'une frame sur deux. La logique du jeu tourne à pleine
+    // vitesse, seul l'affichage est allégé. Se réévalue en continu.
+    const renderPath = gba.video.renderPath;
+    const vraiScanline = renderPath.drawScanline;
+    const vraiFinishDraw = renderPath.finishDraw;
+    const rienScanline = function () {};
+    const rienFinish = function () {};
+    let frameIndex = 0;
+    let coutTotal = 0, coutFrames = 0;
+    let sauterRendu = false;
+
     gba.advanceFrame = function () {
       if ((gba.cpu.gprs[15] >>> 0) < 0x4000 && gba.cpu.cpsrI) {
         try {
@@ -238,7 +291,29 @@
             gba.cpu.cpsrI = false;
         } catch (e) { /* ignore */ }
       }
+
+      frameIndex++;
+      const sauterCelleCi = sauterRendu && (frameIndex & 1);
+      if (sauterCelleCi) {
+        renderPath.drawScanline = rienScanline;
+        renderPath.finishDraw = rienFinish;
+      }
+      const t0 = performance.now();
       avance();
+      const dt = performance.now() - t0;
+      if (sauterCelleCi) {
+        renderPath.drawScanline = vraiScanline;
+        renderPath.finishDraw = vraiFinishDraw;
+      } else {
+        // on ne mesure que les frames complètes pour jauger la puissance
+        coutTotal += dt;
+        coutFrames++;
+        if (coutFrames >= 45) {
+          const moyenne = coutTotal / coutFrames;
+          sauterRendu = moyenne > 13;          // pas le temps pour 60 i/s complètes
+          coutTotal = 0; coutFrames = 0;
+        }
+      }
     };
 
     readFileAsArrayBuffer(romFile).then(async romBuffer => {

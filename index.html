@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Valdoria — Aventure à deux</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
@@ -15,7 +17,7 @@
 
 <main>
   <section id="setup">
-    <input type="text" id="playerName" placeholder="Ton pseudo" maxlength="12"><br>
+    <div class="pokeball"></div>
     <label class="btn">Choisir ma ROM (.gba)<input type="file" id="romInput" accept=".gba" hidden></label>
     <p class="note">Ta ROM reste sur ton ordinateur, elle n'est jamais envoyée sur internet.<br>
     Chaque joueur fournit sa propre ROM (Rouge Feu ou un hack basé dessus).</p>
@@ -24,8 +26,7 @@
 
   <section id="play">
     <div class="mobile-hud" aria-label="Menus mobiles">
-      <button type="button" id="mobileValdoriaBtn">Valdoria</button>
-      <button type="button" id="mobileGameMenuBtn" data-gba-key="START">Menu jeu</button>
+      <button type="button" id="mobileValdoriaBtn">PokéKanto</button>
     </div>
 
     <div id="screenWrap">
@@ -37,7 +38,7 @@
     <div class="mobile-backdrop" id="mobileBackdrop"></div>
     <div class="valdoria-options" id="valdoriaOptions">
       <div class="mobile-drawer-head">
-        <strong>Valdoria</strong>
+        <strong>PokéKanto</strong>
         <button type="button" id="closeValdoriaMenu">Fermer</button>
       </div>
 
@@ -67,16 +68,27 @@
     </div>
 
     <div class="mobile-controls" aria-label="Contrôles tactiles">
-      <div class="mobile-buttons">
+      <div class="shoulder-row">
         <button type="button" class="touch-btn shoulder" data-gba-key="L">L</button>
         <button type="button" class="touch-btn shoulder" data-gba-key="R">R</button>
-        <button type="button" class="touch-btn action b" data-gba-key="B">B</button>
-        <button type="button" class="touch-btn action a" data-gba-key="A">A</button>
+      </div>
+      <div class="pad-row">
+        <div class="dpad" id="dpadZone" aria-label="Croix directionnelle">
+          <span class="d up" data-dir="UP">▲</span>
+          <span class="d left" data-dir="LEFT">◀</span>
+          <span class="d centre"></span>
+          <span class="d right" data-dir="RIGHT">▶</span>
+          <span class="d down" data-dir="DOWN">▼</span>
+        </div>
+        <div class="ab">
+          <button type="button" class="touch-btn action b" data-gba-key="B">B</button>
+          <button type="button" class="touch-btn action a" data-gba-key="A">A</button>
+        </div>
+      </div>
+      <div class="system-row">
         <button type="button" class="touch-btn system" data-gba-key="SELECT">Select</button>
         <button type="button" class="touch-btn system" data-gba-key="START">Start</button>
-      </div>
-      <div class="touch-joystick" id="touchJoystick" aria-label="Joystick">
-        <span class="joystick-knob"></span>
+        <span class="led2"></span>
       </div>
     </div>
   </section>
