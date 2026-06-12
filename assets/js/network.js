@@ -42,7 +42,7 @@
             friend.direction = d.x > previousX ? "right" : "left";
           else
             friend.direction = d.y > previousY ? "down" : "up";
-          friend.movingUntil = Date.now() + 300;
+          friend.movingUntil = Date.now() + 500;
         }
       }
     });
