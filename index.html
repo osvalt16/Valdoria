@@ -6,7 +6,7 @@
 <title>Valdoria — Aventure à deux</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/main.css?v=20260612n">
+<link rel="stylesheet" href="assets/css/main.css?v=20260612o">
 </head>
 <body>
 
@@ -60,6 +60,7 @@
       <div class="panel">
         <button id="soundBtn">🔊 Activer le son</button>
         <button id="pauseBtn">Pause</button>
+        <button id="raccourcisBtn" type="button">⌨️ Raccourcis</button>
         <div class="save-actions">
           <label class="btn control secondary">Importer .sav<input type="file" id="playSavInput" accept=".sav" hidden></label>
           <button id="saveBtn" disabled>Exporter .sav</button>
@@ -92,6 +93,18 @@
       </div>
     </div>
 
+    <div id="raccourcisPanel" hidden>
+      <div class="raccourcis-card">
+        <h2>Raccourcis clavier</h2>
+        <div id="raccourcisListe"></div>
+        <div class="raccourcis-actions">
+          <button type="button" id="raccourcisDefaut">Défaut</button>
+          <button type="button" id="raccourcisFermer">Fermer</button>
+          <button type="button" id="raccourcisSauver">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+
     <button type="button" id="fullscreenBtn" class="fullscreen-btn" aria-label="Plein écran">⛶</button>
   </section>
 </main>
@@ -99,39 +112,40 @@
 <!-- Émulateur gbajs2 (licence BSD, voir js/COPYING) servi depuis le dépôt :
      plus de dépendance CDN et son worker de rendu (js/video/worker.js) devient
      utilisable. Aucune ROM incluse. -->
-<script src="js/util.js?v=20260612n"></script>
-<script src="js/core.js?v=20260612n"></script>
-<script src="js/arm.js?v=20260612n"></script>
-<script src="js/thumb.js?v=20260612n"></script>
-<script src="js/mmu.js?v=20260612n"></script>
-<script src="js/io.js?v=20260612n"></script>
-<script src="js/audio.js?v=20260612n"></script>
-<script src="js/video.js?v=20260612n"></script>
-<script src="js/video/proxy.js?v=20260612n"></script>
-<script src="js/video/software.js?v=20260612n"></script>
-<script src="js/irq.js?v=20260612n"></script>
-<script src="js/keypad.js?v=20260612n"></script>
-<script src="js/sio.js?v=20260612n"></script>
-<script src="js/savedata.js?v=20260612n"></script>
-<script src="js/gpio.js?v=20260612n"></script>
-<script src="js/gba.js?v=20260612n"></script>
-<script src="resources/biosbin.js?v=20260612n"></script>
+<script src="js/util.js?v=20260612o"></script>
+<script src="js/core.js?v=20260612o"></script>
+<script src="js/arm.js?v=20260612o"></script>
+<script src="js/thumb.js?v=20260612o"></script>
+<script src="js/mmu.js?v=20260612o"></script>
+<script src="js/io.js?v=20260612o"></script>
+<script src="js/audio.js?v=20260612o"></script>
+<script src="js/video.js?v=20260612o"></script>
+<script src="js/video/proxy.js?v=20260612o"></script>
+<script src="js/video/software.js?v=20260612o"></script>
+<script src="js/irq.js?v=20260612o"></script>
+<script src="js/keypad.js?v=20260612o"></script>
+<script src="js/sio.js?v=20260612o"></script>
+<script src="js/savedata.js?v=20260612o"></script>
+<script src="js/gpio.js?v=20260612o"></script>
+<script src="js/gba.js?v=20260612o"></script>
+<script src="resources/biosbin.js?v=20260612o"></script>
 <!-- Monde partagé : Firebase Realtime Database (clés publiques par conception) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-<script src="assets/js/dom.js?v=20260612n"></script>
-<script src="assets/js/state.js?v=20260612n"></script>
-<script src="assets/js/audio.js?v=20260612n"></script>
-<script src="assets/js/emulator.js?v=20260612n"></script>
-<script src="assets/js/position.js?v=20260612n"></script>
-<script src="assets/js/tchat.js?v=20260612n"></script>
-<script src="assets/js/network.js?v=20260612n"></script>
-<script src="assets/js/sprites.js?v=20260612n"></script>
-<script src="assets/js/overlay.js?v=20260612n"></script>
-<script src="assets/js/debug.js?v=20260612n"></script>
-<script src="assets/js/app.js?v=20260612n"></script>
-<script src="assets/js/touch-controls.js?v=20260612n"></script>
-<script src="assets/js/fullscreen.js?v=20260612n"></script>
+<script src="assets/js/dom.js?v=20260612o"></script>
+<script src="assets/js/state.js?v=20260612o"></script>
+<script src="assets/js/audio.js?v=20260612o"></script>
+<script src="assets/js/emulator.js?v=20260612o"></script>
+<script src="assets/js/position.js?v=20260612o"></script>
+<script src="assets/js/raccourcis.js?v=20260612o"></script>
+<script src="assets/js/tchat.js?v=20260612o"></script>
+<script src="assets/js/network.js?v=20260612o"></script>
+<script src="assets/js/sprites.js?v=20260612o"></script>
+<script src="assets/js/overlay.js?v=20260612o"></script>
+<script src="assets/js/debug.js?v=20260612o"></script>
+<script src="assets/js/app.js?v=20260612o"></script>
+<script src="assets/js/touch-controls.js?v=20260612o"></script>
+<script src="assets/js/fullscreen.js?v=20260612o"></script>
 </body>
 </html>

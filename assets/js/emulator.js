@@ -217,6 +217,7 @@
     installSaveHooks(gba);
 
     gba.keypad.eatInput = true;
+    if (window.Valdoria.raccourcis) window.Valdoria.raccourcis.applique(gba);
     gba.logLevel = gba.LOG_ERROR;
     gba.setLogger((level, error) => console.error("[gba]", error));
 

@@ -92,6 +92,27 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
   border-radius:9px; padding:0 14px; font-weight:700; cursor:pointer; box-shadow:0 3px 0 #163a8e; }
 #tchatForm button:active { transform:translateY(2px); box-shadow:0 1px 0 #163a8e; }
 
+/* ---------- raccourcis clavier (PC) : panneau sombre translucide ---------- */
+#raccourcisPanel { position:fixed; inset:0; z-index:30; display:flex; align-items:center;
+  justify-content:center; background:rgba(10,6,18,.72); backdrop-filter:blur(3px); }
+#raccourcisPanel[hidden] { display:none; }
+.raccourcis-card { background:rgba(23,16,34,.95); border:2px solid var(--bordure); border-radius:14px;
+  padding:18px 20px; width:min(420px, 92vw); max-height:86vh; overflow:auto; color:var(--texte);
+  box-shadow:0 24px 70px rgba(0,0,0,.6); text-align:left; }
+.raccourcis-card h2 { margin:0 0 12px; font-family:"Press Start 2P", monospace; font-size:.8rem; color:var(--or); }
+.raccourci-ligne { display:flex; justify-content:space-between; align-items:center; gap:12px;
+  padding:5px 0; border-bottom:1px solid rgba(255,255,255,.07); font-size:.9rem; }
+.raccourci-touche { min-width:150px; padding:7px 10px; border-radius:8px; border:2px solid var(--bordure);
+  background:#241a38; color:var(--texte); cursor:pointer; font-size:.85rem; text-align:center; }
+.raccourci-touche.attente { border-color:var(--or); color:var(--or); animation:attente-pulse 1s infinite; }
+@keyframes attente-pulse { 50% { opacity:.55; } }
+.raccourcis-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+.raccourcis-actions button { border:none; border-radius:9px; padding:9px 16px; font-weight:700;
+  cursor:pointer; color:#fff; }
+#raccourcisDefaut, #raccourcisFermer { background:#52465f; box-shadow:0 3px 0 #38304a; }
+#raccourcisSauver { background:linear-gradient(180deg, var(--rouge), var(--rouge2)); box-shadow:0 3px 0 #7e1300; }
+#raccourcisDefaut:active, #raccourcisFermer:active, #raccourcisSauver:active { transform:translateY(2px); }
+
 #debugPanel { display:none; font-family:monospace; font-size:.8rem; color:#555; text-align:left; white-space:pre; }
 #debugToggle { color:#9a93ad; font-size:.75rem; cursor:pointer; text-decoration:underline; margin-top:8px; display:inline-block; }
 
@@ -128,6 +149,8 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
     margin:4px 0;
     font-size:.78rem;
   }
+  #raccourcisBtn, #raccourcisPanel { display:none !important; }
+
   /* portrait : le tchat occupe tout l'espace entre l'écran et le pad */
   body.is-playing #tchat {
     display:flex;
