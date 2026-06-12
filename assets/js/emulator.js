@@ -250,19 +250,24 @@
     const FRAME_MS = 1000 / 59.7275;       // cadence d'origine du GBA
     let horloge = 0;
     let retard = 0;
+    let vsyncMs = FRAME_MS;   // durée mesurée entre deux ticks d'écran
     window.queueFrame = function (f) {
       requestAnimationFrame(function (maintenant) {
         if (!horloge) horloge = maintenant - FRAME_MS;
-        retard += maintenant - horloge;
+        const delta = maintenant - horloge;
         horloge = maintenant;
+        if (delta < 100) vsyncMs = vsyncMs * 0.9 + delta * 0.1;
+        retard += delta;
         // onglet revenu au premier plan : on ne rattrape pas des minutes
-        if (retard > 3 * FRAME_MS) retard = 3 * FRAME_MS;
+        if (retard > 4 * FRAME_MS) retard = 4 * FRAME_MS;
         // écran 90/120 Hz : trop tôt pour une nouvelle frame
         if (retard < FRAME_MS) { window.queueFrame(f); return; }
         retard -= FRAME_MS;
         f();                               // émule une frame et replanifie
         // encore en retard et du budget avant le prochain vsync : on rattrape
-        while (retard >= FRAME_MS && performance.now() - maintenant < 12 && !gba.paused) {
+        // (budget calé sur le rythme réel : écran 30 Hz en mode éco, 60, 120…)
+        const budget = Math.min(24, vsyncMs - 4);
+        while (retard >= FRAME_MS && performance.now() - maintenant < budget && !gba.paused) {
           retard -= FRAME_MS;
           gba.advanceFrame();
         }
@@ -292,7 +297,7 @@
     };
     let frameIndex = 0;
     let coutTotal = 0, coutFrames = 0;
-    let sauterRendu = false;
+    let niveauSaut = 0;   // 0 = tout dessiner, 1 = 1 frame sur 2, 2 = 1 sur 3
 
     gba.advanceFrame = function () {
       if ((gba.cpu.gprs[15] >>> 0) < 0x4000 && gba.cpu.cpsrI) {
@@ -303,7 +308,7 @@
       }
 
       frameIndex++;
-      const sauterCelleCi = sauterRendu && (frameIndex & 1);
+      const sauterCelleCi = niveauSaut > 0 && frameIndex % (niveauSaut + 1) !== 0;
       if (sauterCelleCi) {
         renderPath.drawScanline = rienScanline;
         renderPath.finishDraw = rienFinish;
@@ -319,9 +324,11 @@
         // on ne mesure que les frames complètes pour jauger la puissance
         coutTotal += dt;
         coutFrames++;
-        if (coutFrames >= 45) {
+        if (coutFrames >= 30) {
           const moyenne = coutTotal / coutFrames;
-          sauterRendu = moyenne > 13;          // pas le temps pour 60 i/s complètes
+          // marge sous 16,7 ms : il faut aussi du temps pour le rattrapage,
+          // sinon l'audio se vide et coupe (saccades sur mobile)
+          niveauSaut = moyenne > 15 ? 2 : moyenne > 12 ? 1 : 0;
           coutTotal = 0; coutFrames = 0;
         }
       }

@@ -43,13 +43,13 @@ class ValdoriaAudioProcessor extends AudioWorkletProcessor {
         this.w++;
       }
       // garde-fou : si vraiment trop d'avance s'accumule, on resaute à la cible
-      if (this.w - this.r > this.inRate * 0.3) this.r = this.w - this.inRate * 0.125;
+      if (this.w - this.r > this.inRate * 0.35) this.r = this.w - this.inRate * 0.15;
     };
   }
   process(inputs, outputs) {
     const out = outputs[0];
     const L = out[0], R = out[1] || out[0];
-    const cible = this.inRate * 0.125;        // ~125 ms de réserve visée
+    const cible = this.inRate * 0.15;         // ~150 ms de réserve visée
     if (!this.primed) {
       if (this.w - this.r >= cible * 0.5) this.primed = true;
       else {
@@ -60,10 +60,12 @@ class ValdoriaAudioProcessor extends AudioWorkletProcessor {
         return true;
       }
     }
-    // contrôle de débit : on lit jusqu'à ±0,5 % plus ou moins vite pour
-    // rester autour de la réserve cible (inaudible, évite sauts et trous)
+    // contrôle de débit : on lit plus ou moins vite pour rester autour de
+    // la réserve cible. Plage asymétrique : on accepte de ralentir un peu
+    // plus (-1,5 %, à peine audible) qu'accélérer, car le risque principal
+    // est le tampon qui se vide quand le téléphone rame.
     const ecart = (this.w - this.r - cible) / cible;
-    const correction = Math.max(-0.005, Math.min(0.005, ecart * 0.01));
+    const correction = Math.max(-0.015, Math.min(0.01, ecart * 0.02));
     const step = (this.inRate / sampleRate) * (1 + correction);
     const a = this.lpA;
     for (let i = 0; i < L.length; i++) {
