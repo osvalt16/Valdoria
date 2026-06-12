@@ -231,6 +231,19 @@
 
     // Rouge Feu peut rester bloqué dans IntrWait si les IRQ sont masquées.
     const avance = gba.advanceFrame.bind(gba);
+
+    // Saut de rendu adaptatif : si l'appareil ne tient pas 60 i/s (mobiles),
+    // on ne dessine qu'une frame sur deux. La logique du jeu tourne à pleine
+    // vitesse, seul l'affichage est allégé. Se réévalue en continu.
+    const renderPath = gba.video.renderPath;
+    const vraiScanline = renderPath.drawScanline;
+    const vraiFinishDraw = renderPath.finishDraw;
+    const rienScanline = function () {};
+    const rienFinish = function () {};
+    let frameIndex = 0;
+    let coutTotal = 0, coutFrames = 0;
+    let sauterRendu = false;
+
     gba.advanceFrame = function () {
       if ((gba.cpu.gprs[15] >>> 0) < 0x4000 && gba.cpu.cpsrI) {
         try {
@@ -238,7 +251,29 @@
             gba.cpu.cpsrI = false;
         } catch (e) { /* ignore */ }
       }
+
+      frameIndex++;
+      const sauterCelleCi = sauterRendu && (frameIndex & 1);
+      if (sauterCelleCi) {
+        renderPath.drawScanline = rienScanline;
+        renderPath.finishDraw = rienFinish;
+      }
+      const t0 = performance.now();
       avance();
+      const dt = performance.now() - t0;
+      if (sauterCelleCi) {
+        renderPath.drawScanline = vraiScanline;
+        renderPath.finishDraw = vraiFinishDraw;
+      } else {
+        // on ne mesure que les frames complètes pour jauger la puissance
+        coutTotal += dt;
+        coutFrames++;
+        if (coutFrames >= 45) {
+          const moyenne = coutTotal / coutFrames;
+          sauterRendu = moyenne > 13;          // pas le temps pour 60 i/s complètes
+          coutTotal = 0; coutFrames = 0;
+        }
+      }
     };
 
     readFileAsArrayBuffer(romFile).then(async romBuffer => {
