@@ -3,8 +3,8 @@
 
   const CELL_W = 16;
   const CELL_H = 24;
-  const DRAW_W = 48;   // ajuste visuellement pour correspondre au joueur GBA a x2
-  const DRAW_H = 64;
+  const DRAW_W = 40;
+  const DRAW_H = 60;
   const FEET = DRAW_H - 1;
   const ROWS = { down: 0, left: 1, right: 2, up: 3 };
   const CYCLE = [0, 1, 2, 1];
