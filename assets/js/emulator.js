@@ -225,6 +225,46 @@
     // Le renderer par défaut dépend d'un worker introuvable depuis le CDN.
     gba.video.renderPath = new GameBoyAdvanceSoftwareRenderer();
 
+    // Son plus propre : l'audio d'origine ré-échantillonne au plus proche
+    // voisin (son métallique) et coupe net quand il manque d'échantillons
+    // (craquements). Ici : interpolation linéaire + fondu doux vers le
+    // silence en cas de manque, et volume légèrement baissé pour éviter
+    // la saturation des musiques.
+    if (gba.audio && gba.audio.context) {
+      gba.audio.masterVolume = 0.85;
+      gba.audio.audioProcess = function (e) {
+        const left = e.outputBuffer.getChannelData(0);
+        const right = e.outputBuffer.getChannelData(1);
+        if (!this.masterEnable || !this.buffers) {
+          left.fill(0); right.fill(0);
+          return;
+        }
+        let o = this.outputPointer;
+        let i = 0;
+        let lastL = 0, lastR = 0;
+        for (; i < this.bufferSize; ++i, o += this.resampleRatio) {
+          if (o >= this.maxSamples) o -= this.maxSamples;
+          const i0 = o | 0;
+          if (i0 === this.samplePointer) { ++this.backup; break; }
+          const i1 = (i0 + 1) & this.sampleMask;
+          if (i1 === this.samplePointer) {
+            lastL = left[i] = this.buffers[0][i0];
+            lastR = right[i] = this.buffers[1][i0];
+            continue;
+          }
+          const t = o - i0;
+          lastL = left[i] = this.buffers[0][i0] * (1 - t) + this.buffers[0][i1] * t;
+          lastR = right[i] = this.buffers[1][i0] * (1 - t) + this.buffers[1][i1] * t;
+        }
+        for (; i < this.bufferSize; ++i) {   // manque de samples : fondu, pas de clic
+          lastL *= 0.95; lastR *= 0.95;
+          left[i] = lastL; right[i] = lastR;
+        }
+        this.outputPointer = o;
+        ++this.totalSamples;
+      };
+    }
+
     gba.setCanvas($("screen"));
     gba.setBios(biosBin);
     gba.audio.masterEnable = false;
