@@ -5,7 +5,10 @@
   const state = window.Valdoria.state;
   const PREFIX = "valdoria-coop-";
 
-  const myName = () => $("playerName").value.trim() || "Joueur";
+  const myName = () => {
+    const el = document.getElementById("playerName");
+    return (el && el.value.trim()) || "Joueur";
+  };
 
   function randCode() {
     const c = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
