@@ -301,6 +301,7 @@
     };
     let frameIndex = 0;
     let coutTotal = 0, coutFrames = 0;
+    let ipsDepuis = performance.now(), ipsFrames = 0;
     let niveauSaut = 0;   // 0 = tout dessiner, 1 = 1 frame sur 2, 2 = 1 sur 3
 
     gba.advanceFrame = function () {
@@ -312,6 +313,15 @@
       }
 
       frameIndex++;
+      // vitesse réelle d'émulation, lisible dans le panneau debug :
+      // ~59,7 i/s = vitesse GBA exacte (la musique est alors à son vrai tempo)
+      ipsFrames++;
+      const ipsT = performance.now();
+      if (ipsT - ipsDepuis >= 1000) {
+        state.ips = Math.round(ipsFrames * 1000 / (ipsT - ipsDepuis) * 10) / 10;
+        ipsFrames = 0;
+        ipsDepuis = ipsT;
+      }
       const sauterCelleCi = renduLogiciel && niveauSaut > 0 && frameIndex % (niveauSaut + 1) !== 0;
       if (sauterCelleCi) {
         renderPath.drawScanline = rienScanline;
