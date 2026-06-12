@@ -13,9 +13,9 @@
     ctx.textAlign = "center";
     ctx.lineWidth = 3;
     ctx.strokeStyle = "rgba(0,0,0,0.8)";
-    ctx.strokeText(name, x + 16, y - 24);
+    ctx.strokeText(name, x + 16, y - 34);
     ctx.fillStyle = "#fff";
-    ctx.fillText(name, x + 16, y - 24);
+    ctx.fillText(name, x + 16, y - 34);
   }
 
   function drawOverlay() {
