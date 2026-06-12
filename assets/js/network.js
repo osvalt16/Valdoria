@@ -25,9 +25,20 @@
   let dernierEnvoi = 0;
   let dernierePos = null;
 
+  // Le nom lu dans la partie fait foi ; le champ libre ne sert que tant
+  // que la partie n'a pas encore livré son nom (menu titre, intro).
   function pseudo() {
+    if (state.myPos && state.myPos.nom) return state.myPos.nom;
     const saisi = $("playerName").value.trim().slice(0, 16);
     return saisi || "Dresseur-" + monId.slice(-4).toUpperCase();
+  }
+
+  function verrouillePseudo(nom) {
+    const champ = $("playerName");
+    if (champ.disabled && champ.value === nom) return;
+    champ.value = nom;
+    champ.disabled = true;
+    champ.title = "Nom de ta partie — non modifiable";
   }
 
   function majJoueur(id, d) {
@@ -105,13 +116,15 @@
   function sendPos(pos) {
     if (!monRef || !pos) return;
     const now = Date.now();
+    if (pos.nom) verrouillePseudo(pos.nom);
     const meme = dernierePos &&
       dernierePos.x === pos.x && dernierePos.y === pos.y &&
-      dernierePos.g === pos.g && dernierePos.m === pos.m;
+      dernierePos.g === pos.g && dernierePos.m === pos.m &&
+      dernierePos.nom === (pos.nom || null);
     if (meme && now - dernierEnvoi < 30000) return;
     if (now - dernierEnvoi < ENVOI_MIN_MS) return;
     dernierEnvoi = now;
-    dernierePos = { x: pos.x, y: pos.y, g: pos.g, m: pos.m };
+    dernierePos = { x: pos.x, y: pos.y, g: pos.g, m: pos.m, nom: pos.nom || null };
     monRef.set({
       nom: pseudo(),
       x: pos.x, y: pos.y, g: pos.g, m: pos.m,

@@ -16,7 +16,38 @@
     const g = gba.mmu.loadU8(ptr + 4);
     const m = gba.mmu.loadU8(ptr + 5);
     if (x < 1 || x > 1500 || y < 1 || y > 1500 || g > 60 || m > 90) return null;
-    return { addr, ptr, x, y, g, m, sexe: lireSexe(addr) };
+    return { addr, ptr, x, y, g, m, sexe: lireSexe(addr), nom: lireNom(addr) };
+  }
+
+  // Nom du héros : les 8 premiers octets de SaveBlock2 (7 caractères
+  // + terminateur 0xFF), encodage propriétaire Gen III, table occidentale.
+  // On ne décode que l'utile : chiffres, lettres, accents français.
+  const GEN3 = (function () {
+    const t = { 0x00: " ", 0xAB: "!", 0xAC: "?", 0xAD: ".", 0xAE: "-" };
+    "0123456789".split("").forEach((c, i) => { t[0xA1 + i] = c; });
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach((c, i) => { t[0xBB + i] = c; });
+    "abcdefghijklmnopqrstuvwxyz".split("").forEach((c, i) => { t[0xD5 + i] = c; });
+    t[0x06] = "É"; t[0x16] = "à"; t[0x19] = "ç"; t[0x1A] = "è"; t[0x1B] = "é";
+    t[0x1C] = "ê"; t[0x20] = "î"; t[0x24] = "ô"; t[0x26] = "ù"; t[0x28] = "û";
+    return t;
+  })();
+
+  function lireNom(sb1Addr) {
+    try {
+      const ptr2 = state.gba.mmu.load32(sb1Addr + 4) >>> 0;
+      if (ptr2 < 0x02000000 || ptr2 >= 0x02040000) return null;
+      let nom = "";
+      for (let i = 0; i < 7; i++) {
+        const c = state.gba.mmu.loadU8(ptr2 + i);
+        if (c === 0xFF) break;
+        nom += GEN3[c] || "?";
+      }
+      nom = nom.trim();
+      // un nom illisible (que des '?') = encodage inattendu : on ignore
+      return nom && nom.replace(/\?/g, "").length ? nom : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   // Genre du héros : le pointeur SaveBlock2 suit SaveBlock1 en IWRAM,
