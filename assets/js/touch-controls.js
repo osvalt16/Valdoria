@@ -22,6 +22,14 @@
     directionKeys.forEach(key => setKey(key, false));
   }
 
+  // Un appui sur la manette ne doit jamais laisser le clavier virtuel
+  // ouvert : si un champ texte (tchat, pseudo) a encore le focus, on le
+  // rend — preventDefault() sur pointerdown empêche le blur naturel.
+  function fermeClavier() {
+    const actif = document.activeElement;
+    if (actif && (actif.tagName === "INPUT" || actif.tagName === "TEXTAREA")) actif.blur();
+  }
+
   /* ----- boutons simples (A, B, L, R, Start, Select, Menu jeu) ----- */
   function bindTouchButton(button) {
     const key = button.dataset.gbaKey;
@@ -29,6 +37,7 @@
 
     const press = event => {
       event.preventDefault();
+      fermeClavier();
       button.setPointerCapture?.(event.pointerId);
       button.classList.add("is-active");
       setKey(key, true);
@@ -92,6 +101,7 @@
 
     pad.addEventListener("pointerdown", event => {
       event.preventDefault();
+      fermeClavier();
       dpadPointer = event.pointerId;
       pad.setPointerCapture?.(event.pointerId);
       applyDirection(directionFromEvent(pad, event));

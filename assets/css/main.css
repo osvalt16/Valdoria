@@ -134,7 +134,7 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
     flex-direction:column;
     flex:1 1 auto;
     min-height:96px;
-    margin:4px 0;
+    margin:4px 0 12px;   /* espace tampon au-dessus du pad : moins de faux appuis */
     padding:6px;
     border-width:2px;
   }
