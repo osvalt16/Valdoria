@@ -17,8 +17,8 @@
   }
 
   const images = {
-    boy: load("assets/img/remote-boy.png"),
-    girl: load("assets/img/remote-girl.png")
+    boy: load("assets/img/remote_homme.png"),
+    girl: load("assets/img/remote_fille.png")
   };
 
   function imageFor(friend) {
