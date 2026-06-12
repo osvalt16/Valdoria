@@ -132,6 +132,17 @@
   document.querySelectorAll("[data-gba-key]").forEach(bindTouchButton);
   bindDpad();
   bindMenus();
+
+  // Filet global (notamment en plein écran) : tout contact en dehors d'un
+  // champ texte rend le focus, en phase de capture pour passer avant les
+  // preventDefault() des contrôles. Le clavier virtuel ne peut donc pas
+  // rester ouvert pendant qu'on joue, quel que soit l'élément touché.
+  document.addEventListener("pointerdown", event => {
+    const actif = document.activeElement;
+    if (!actif || (actif.tagName !== "INPUT" && actif.tagName !== "TEXTAREA")) return;
+    if (event.target === actif) return;
+    actif.blur();
+  }, true);
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       applyDirection(null);
