@@ -14,7 +14,7 @@
       const conn = state.conn;
       state.myPos = position.readMyPos();
       if (state.myPos && conn && conn.open)
-        conn.send({ t: "pos", x: state.myPos.x, y: state.myPos.y, g: state.myPos.g, m: state.myPos.m });
+        conn.send({ t: "pos", x: state.myPos.x, y: state.myPos.y, g: state.myPos.g, m: state.myPos.m, s: state.myPos.sexe });
       debug.updateDebug();
     }, 125);
     requestAnimationFrame(overlay.drawOverlay);

@@ -35,6 +35,7 @@
         friend.m = d.m;
         friend.tx = d.x;
         friend.ty = d.y;
+        friend.sexe = d.s === 0 || d.s === 1 ? d.s : null;
 
         if (d.x !== previousX || d.y !== previousY) {
           if (Math.abs(d.x - previousX) >= Math.abs(d.y - previousY))

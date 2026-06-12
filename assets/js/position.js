@@ -16,7 +16,21 @@
     const g = gba.mmu.loadU8(ptr + 4);
     const m = gba.mmu.loadU8(ptr + 5);
     if (x < 1 || x > 1500 || y < 1 || y > 1500 || g > 60 || m > 90) return null;
-    return { addr, ptr, x, y, g, m };
+    return { addr, ptr, x, y, g, m, sexe: lireSexe(addr) };
+  }
+
+  // Genre du héros : le pointeur SaveBlock2 suit SaveBlock1 en IWRAM,
+  // et playerGender est à l'offset 0x8 (après le nom sur 8 octets).
+  // 0 = garçon, 1 = fille, null = illisible.
+  function lireSexe(sb1Addr) {
+    try {
+      const ptr2 = state.gba.mmu.load32(sb1Addr + 4) >>> 0;
+      if (ptr2 < 0x02000000 || ptr2 >= 0x02040000) return null;
+      const sexe = state.gba.mmu.loadU8(ptr2 + 8);
+      return sexe === 0 || sexe === 1 ? sexe : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   function scanSaveBlock() {

@@ -25,7 +25,8 @@
       dy: 0,
       visible: false,
       direction: "down",
-      movingUntil: 0
+      movingUntil: 0,
+      sexe: null
     }
   };
 })(window);
