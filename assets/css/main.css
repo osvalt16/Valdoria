@@ -653,8 +653,24 @@ body.is-playing #legendeZone {
 }
 
 @media (max-width: 820px), (max-height: 520px), (pointer: coarse) {
-  #tchat .tchat-onglets { display:none; }
-  .mobile-onglets-panel { display:block; }
+  .mobile-onglets-panel { display:none; }
+  body.is-playing #tchat { position:relative; }
+  body.is-playing #tchat .tchat-onglets {
+    display:flex !important;
+    flex-direction:row; gap:4px;
+    position:absolute; top:6px; right:6px; z-index:2;
+    border-bottom:none; margin-bottom:0;
+  }
+  body.is-playing #tchat .tchat-onglets button {
+    padding:3px 8px; font-size:.7rem; border-radius:7px;
+    border:1.5px solid var(--bordure); background:#e7e2f2; color:var(--texte-sombre);
+    font-weight:700; white-space:nowrap; margin-bottom:0;
+  }
+  body.is-playing #tchat .tchat-onglets button.actif {
+    background:linear-gradient(180deg,#3c78ff,#2255cc); color:#fff;
+    border-color:#163a8e;
+  }
+  body.is-playing #tchatMessages { padding-top:28px; }
 }
 
 /* ---- Boutons actions dans drawer mobile ---- */
