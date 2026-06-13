@@ -385,7 +385,6 @@ body.is-playing main {
   display:flex; flex-direction:column; overflow:hidden; }
 body.is-playing #play {
   flex:1; min-height:0; display:flex; flex-direction:column; gap:8px; overflow:hidden; }
-body.is-playing .mobile-hud { display:flex; }
 body.is-playing #screenZone { flex:0 0 65vh; }
 body.is-playing #screenZone #screenWrap { max-height:65vh; }
 body.is-playing #friendInfo { flex:0 0 auto; margin:0; font-size:.82rem; min-height:1em; }
