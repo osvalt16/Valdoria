@@ -18,17 +18,7 @@
 
   window.Valdoria = window.Valdoria || {};
   window.Valdoria.spritesConfig = [
-    {
-      id:    "homme",
-      label: "Garçon",
-      src:   "assets/img/remote_homme.png"
-    },
-    {
-      id:    "fille",
-      label: "Fille",
-      src:   "assets/img/remote_fille.png"
-    }
-    // ↓ Ajoute tes personnages ici ↓
-  ];
-
-})(window);
+    { id: "homme1",  label: "Garçon 1",  src: "assets/img/homme1.png"  },
+    { id: "homme2",  label: "Garçon 2",  src: "assets/img/homme2.png"  },
+    { id: "homme3",  label: "Garçon 3",  src: "assets/img/homme3.png"  },
+    { id: "homme4",  label: "Garçon
