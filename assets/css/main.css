@@ -671,6 +671,9 @@ body.is-playing #legendeZone {
     border-color:#163a8e;
   }
   body.is-playing #tchatMessages { padding-top:28px; }
+  /* PC only : cacher explication clavier et config Cable Club */
+  .panel-clavier { display:none !important; }
+  #linkroomConfigPanel { display:none !important; }
 }
 
 /* ---- Boutons actions dans drawer mobile ---- */
