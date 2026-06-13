@@ -14,7 +14,10 @@
     setInterval(() => {
       state.myPos = position.readMyPos();
       state.surCarte = position.estSurCarte();
-      if (state.myPos) network.sendPos(state.myPos);
+      if (state.myPos) {
+        network.sendPos(state.myPos);
+        if (window.Valdoria.linkroom) window.Valdoria.linkroom.check(state.myPos);
+      }
       debug.updateDebug();
     }, 125);
     requestAnimationFrame(overlay.drawOverlay);

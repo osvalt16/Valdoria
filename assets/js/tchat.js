@@ -47,6 +47,7 @@
       try { window.localStorage.setItem(CLE_SUFFIXE + nom, suffixe); } catch (e) {}
     }
     monTag = nom + "#" + suffixe;
+    if (window.Valdoria.linkroom) window.Valdoria.linkroom.definitTag(monTag);
     abonneAmis();
     rend();
   }
@@ -230,5 +231,5 @@
     rend();
   }
 
-  window.Valdoria.tchat = { connect, definitNom };
+  window.Valdoria.tchat = { connect, definitNom, getTag: () => monTag };
 })(window);

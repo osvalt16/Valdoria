@@ -58,6 +58,7 @@
     j.lastTx = j.tx; j.lastTy = j.ty;
     j.g = d.g; j.m = d.m; j.tx = d.x; j.ty = d.y;
     j.sexe = d.sexe === 0 || d.sexe === 1 ? d.sexe : null;
+    j.tag = d.tag || null;
     j.t = d.t || Date.now();
     if (d.x !== prevX || d.y !== prevY) {
       if (Math.abs(d.x - prevX) >= Math.abs(d.y - prevY))
@@ -95,6 +96,7 @@
     joueursRef.on("child_removed", s => { delete state.joueurs[s.key]; majStatut(); });
 
     if (window.Valdoria.tchat) window.Valdoria.tchat.connect(db, pseudo);
+    if (window.Valdoria.linkroom) window.Valdoria.linkroom.connectDb(db, monId);
 
     db.ref(".info/connected").on("value", s => {
       if (s.val()) majStatut();
@@ -130,6 +132,7 @@
     dernierePos = { x: pos.x, y: pos.y, g: pos.g, m: pos.m, nom: pos.nom || null };
     monRef.set({
       nom: pseudo(),
+      tag: window.Valdoria.tchat ? window.Valdoria.tchat.getTag() : null,
       x: pos.x, y: pos.y, g: pos.g, m: pos.m,
       sexe: pos.sexe === 0 || pos.sexe === 1 ? pos.sexe : null,
       t: firebase.database.ServerValue.TIMESTAMP

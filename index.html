@@ -6,7 +6,7 @@
 <title>Valdoria — Aventure à deux</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/main.css?v=20260612x">
+<link rel="stylesheet" href="assets/css/main.css?v=20260613a">
 </head>
 <body>
 
@@ -85,6 +85,12 @@
         <span id="debugToggle">debug</span>
         <div id="debugPanel"></div>
       </div>
+
+      <div class="panel">
+        <p class="linkroom-config-titre">⚔️ Cable Club</p>
+        <p class="keys">Entre dans le Cable Club du jeu, puis clique ici pour enregistrer la salle.</p>
+        <button type="button" id="linkroomBtnSaveMap">📍 Enregistrer cette map</button>
+      </div>
     </div>
 
     <div class="mobile-controls" aria-label="Contrôles tactiles">
@@ -120,6 +126,38 @@
       </div>
     </div>
 
+    <!-- Cable Club : lobby de matchmaking -->
+    <div id="linkroomPanel" hidden>
+      <div class="linkroom-card">
+        <h2>⚔️ Cable Club</h2>
+        <div id="linkroomLobby">
+          <p class="linkroom-intro">Tu entres dans le Cable Club.<br>Que veux-tu faire ?</p>
+          <div class="linkroom-btns">
+            <button type="button" id="linkroomBtnAlea">Combat aléatoire</button>
+            <button type="button" id="linkroomBtnAmi">Défier un ami ▾</button>
+          </div>
+          <div id="linkroomSectionAmis" hidden>
+            <div id="linkroomAmisListe"></div>
+          </div>
+        </div>
+        <div id="linkroomAttente" hidden>
+          <p id="linkroomAttenteMsg" class="linkroom-attente-msg">En attente…</p>
+        </div>
+        <button type="button" id="linkroomBtnAnnuler" class="linkroom-quitter">Quitter la salle</button>
+      </div>
+    </div>
+
+    <!-- Cable Club : notification de défi entrant -->
+    <div id="linkroomDefiPanel" hidden>
+      <div class="linkroom-defi-card">
+        <p><strong id="linkroomDefiNom">Dresseur</strong> te défie !</p>
+        <div class="linkroom-defi-btns">
+          <button type="button" id="linkroomBtnAccepter">✅ Accepter</button>
+          <button type="button" id="linkroomBtnRefuser">❌ Refuser</button>
+        </div>
+      </div>
+    </div>
+
     <button type="button" id="fullscreenBtn" class="fullscreen-btn" aria-label="Plein écran">⛶</button>
   </section>
 </main>
@@ -127,40 +165,41 @@
 <!-- Émulateur gbajs2 (licence BSD, voir js/COPYING) servi depuis le dépôt :
      plus de dépendance CDN et son worker de rendu (js/video/worker.js) devient
      utilisable. Aucune ROM incluse. -->
-<script src="js/util.js?v=20260612x"></script>
-<script src="js/core.js?v=20260612x"></script>
-<script src="js/arm.js?v=20260612x"></script>
-<script src="js/thumb.js?v=20260612x"></script>
-<script src="js/mmu.js?v=20260612x"></script>
-<script src="js/io.js?v=20260612x"></script>
-<script src="js/audio.js?v=20260612x"></script>
-<script src="js/video.js?v=20260612x"></script>
-<script src="js/video/proxy.js?v=20260612x"></script>
-<script src="js/video/software.js?v=20260612x"></script>
-<script src="js/irq.js?v=20260612x"></script>
-<script src="js/keypad.js?v=20260612x"></script>
-<script src="js/sio.js?v=20260612x"></script>
-<script src="js/savedata.js?v=20260612x"></script>
-<script src="js/gpio.js?v=20260612x"></script>
-<script src="js/gba.js?v=20260612x"></script>
-<script src="resources/biosbin.js?v=20260612x"></script>
+<script src="js/util.js?v=20260613a"></script>
+<script src="js/core.js?v=20260613a"></script>
+<script src="js/arm.js?v=20260613a"></script>
+<script src="js/thumb.js?v=20260613a"></script>
+<script src="js/mmu.js?v=20260613a"></script>
+<script src="js/io.js?v=20260613a"></script>
+<script src="js/audio.js?v=20260613a"></script>
+<script src="js/video.js?v=20260613a"></script>
+<script src="js/video/proxy.js?v=20260613a"></script>
+<script src="js/video/software.js?v=20260613a"></script>
+<script src="js/irq.js?v=20260613a"></script>
+<script src="js/keypad.js?v=20260613a"></script>
+<script src="js/sio.js?v=20260613a"></script>
+<script src="js/savedata.js?v=20260613a"></script>
+<script src="js/gpio.js?v=20260613a"></script>
+<script src="js/gba.js?v=20260613a"></script>
+<script src="resources/biosbin.js?v=20260613a"></script>
 <!-- Monde partagé : Firebase Realtime Database (clés publiques par conception) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
-<script src="assets/js/dom.js?v=20260612x"></script>
-<script src="assets/js/state.js?v=20260612x"></script>
-<script src="assets/js/audio.js?v=20260612x"></script>
-<script src="assets/js/emulator.js?v=20260612x"></script>
-<script src="assets/js/position.js?v=20260612x"></script>
-<script src="assets/js/raccourcis.js?v=20260612x"></script>
-<script src="assets/js/tchat.js?v=20260612x"></script>
-<script src="assets/js/network.js?v=20260612x"></script>
-<script src="assets/js/sprites.js?v=20260612x"></script>
-<script src="assets/js/overlay.js?v=20260612x"></script>
-<script src="assets/js/debug.js?v=20260612x"></script>
-<script src="assets/js/app.js?v=20260612x"></script>
-<script src="assets/js/touch-controls.js?v=20260612x"></script>
-<script src="assets/js/fullscreen.js?v=20260612x"></script>
+<script src="assets/js/dom.js?v=20260613a"></script>
+<script src="assets/js/state.js?v=20260613a"></script>
+<script src="assets/js/audio.js?v=20260613a"></script>
+<script src="assets/js/emulator.js?v=20260613a"></script>
+<script src="assets/js/position.js?v=20260613a"></script>
+<script src="assets/js/raccourcis.js?v=20260613a"></script>
+<script src="assets/js/tchat.js?v=20260613a"></script>
+<script src="assets/js/network.js?v=20260613a"></script>
+<script src="assets/js/linkroom.js?v=20260613a"></script>
+<script src="assets/js/sprites.js?v=20260613a"></script>
+<script src="assets/js/overlay.js?v=20260613a"></script>
+<script src="assets/js/debug.js?v=20260613a"></script>
+<script src="assets/js/app.js?v=20260613a"></script>
+<script src="assets/js/touch-controls.js?v=20260613a"></script>
+<script src="assets/js/fullscreen.js?v=20260613a"></script>
 </body>
 </html>

@@ -136,6 +136,70 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
 #debugPanel { display:none; font-family:monospace; font-size:.8rem; color:#555; text-align:left; white-space:pre; }
 #debugToggle { color:#9a93ad; font-size:.75rem; cursor:pointer; text-decoration:underline; margin-top:8px; display:inline-block; }
 
+/* ---------- Cable Club : configuration (dans les options) ---------- */
+.linkroom-config-titre { font-weight:700; font-size:.88rem; margin:0 0 4px; color:var(--texte-sombre); }
+#linkroomBtnSaveMap { background:linear-gradient(180deg,var(--violet),var(--violet2)); color:#fff; border:none;
+  border-radius:9px; padding:10px 16px; font-size:.85rem; font-weight:700; cursor:pointer;
+  box-shadow:0 3px 0 var(--violet3); margin-top:4px; }
+#linkroomBtnSaveMap:active { transform:translateY(2px); box-shadow:0 1px 0 var(--violet3); }
+
+/* ---------- Cable Club : lobby de matchmaking ---------- */
+#linkroomPanel { position:fixed; inset:0; z-index:27; display:flex; align-items:center;
+  justify-content:center; background:rgba(10,6,18,.78); backdrop-filter:blur(3px); }
+#linkroomPanel[hidden] { display:none; }
+
+.linkroom-card { background:var(--panneau); color:var(--texte-sombre); border:3px solid var(--bordure);
+  border-radius:14px; padding:22px; width:min(340px,92vw); box-shadow:0 24px 70px rgba(0,0,0,.6);
+  text-align:center; }
+.linkroom-card h2 { font-family:"Press Start 2P",monospace; font-size:.72rem; color:var(--violet2);
+  margin:0 0 14px; }
+.linkroom-intro { font-size:.87rem; margin:0 0 14px; line-height:1.5; }
+
+.linkroom-btns { display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+.linkroom-btns button { background:linear-gradient(180deg,var(--violet),var(--violet2)); color:#fff;
+  border:none; border-radius:10px; padding:13px 16px; font-weight:700; font-size:.88rem; cursor:pointer;
+  box-shadow:0 3px 0 var(--violet3); }
+.linkroom-btns button:active { transform:translateY(2px); box-shadow:0 1px 0 var(--violet3); }
+
+#linkroomSectionAmis { background:#eee8f8; border:1px solid var(--creme2); border-radius:9px;
+  padding:8px; margin:0 0 10px; text-align:left; max-height:160px; overflow-y:auto; }
+#linkroomSectionAmis[hidden] { display:none; }
+#linkroomSectionAmis em { font-size:.8rem; color:var(--muted); display:block; text-align:center; padding:6px 0; }
+
+.linkroom-ami-btn { display:flex; align-items:center; justify-content:space-between; width:100%;
+  background:#fff; border:1px solid var(--creme2); border-radius:8px; padding:8px 10px; margin-bottom:5px;
+  font-size:.82rem; cursor:pointer; font-weight:700; color:var(--texte-sombre); }
+.linkroom-ami-btn:last-child { margin-bottom:0; }
+.linkroom-ami-btn:hover { background:#f0eaf8; }
+.linkroom-ami-btn:active { background:#e8e0f4; }
+.linkroom-tag-label { font-size:.7rem; color:var(--muted); font-weight:400; }
+
+.linkroom-attente-msg { font-size:.87rem; color:var(--violet2); font-weight:700;
+  margin:0 0 10px; animation:attente-pulse 1.5s infinite; }
+
+.linkroom-quitter { background:none; border:1px solid var(--creme2); border-radius:8px;
+  padding:8px 16px; font-size:.78rem; color:var(--muted); cursor:pointer; margin-top:8px; }
+.linkroom-quitter:hover { background:rgba(0,0,0,.04); }
+
+/* ---------- Cable Club : notification de défi entrant ---------- */
+#linkroomDefiPanel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  z-index:28; }
+#linkroomDefiPanel[hidden] { display:none; }
+
+.linkroom-defi-card { background:var(--panneau); border:3px solid var(--rouge); border-radius:12px;
+  padding:18px 22px; text-align:center; box-shadow:0 10px 34px rgba(0,0,0,.55);
+  color:var(--texte-sombre); min-width:220px; }
+.linkroom-defi-card p { margin:0 0 12px; font-size:.95rem; }
+.linkroom-defi-card strong { color:var(--rouge2); }
+
+.linkroom-defi-btns { display:flex; gap:8px; justify-content:center; }
+.linkroom-defi-btns button { border:none; border-radius:9px; padding:10px 16px; font-weight:700;
+  font-size:.85rem; cursor:pointer; color:#fff; }
+#linkroomBtnAccepter { background:linear-gradient(180deg,#2ecc71,#27ae60); box-shadow:0 3px 0 #1a7a43; }
+#linkroomBtnAccepter:active { transform:translateY(2px); box-shadow:0 1px 0 #1a7a43; }
+#linkroomBtnRefuser { background:linear-gradient(180deg,var(--rouge),var(--rouge2)); box-shadow:0 3px 0 #7e1300; }
+#linkroomBtnRefuser:active { transform:translateY(2px); box-shadow:0 1px 0 #7e1300; }
+
 /* ============================================================
    MOBILE — la console : coque violette, boutons crème 3D
    ============================================================ */
