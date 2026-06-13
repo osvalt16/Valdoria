@@ -2,7 +2,8 @@
   "use strict";
 
   const $ = id => document.getElementById(id);
-  const setStatus = message => { $("netStatus").textContent = message; };
+  // setStatus conservé pour compatibilité réseau mais n'affiche plus rien
+  const setStatus = () => {};
 
   window.Valdoria = window.Valdoria || {};
   window.Valdoria.dom = { $, setStatus };
