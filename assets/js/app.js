@@ -49,4 +49,5 @@
   $("soundBtn").addEventListener("click", emulator.toggleSound);
   $("saveBtn").addEventListener("click", emulator.downloadSave);
   $("debugToggle").addEventListener("click", debug.toggleDebugPanel);
-})(window);
+
+  // légen

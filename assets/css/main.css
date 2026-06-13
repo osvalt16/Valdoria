@@ -601,13 +601,18 @@ body.is-playing .mobile-drawer-head { display:flex; }
   .system-row .led2 { display:none; }
 }
 
-/* ---------- sélecteur de personnage ---------- */
-
-
-
-
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+/* ---------- légende des boutons (bas droite) ---------- */
+#legendeZone { display:none; }
+body.is-playing #legendeZone {
+  display:block; position:fixed;
+  right:14px; bottom:14px; z-index:25;
+}
+#legendeToggle {
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(23,16,34,.72); border:1px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.6); font-size:.8rem; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+  transition:background .12s, color .12s;
+}
+#legendeToggle:ho
