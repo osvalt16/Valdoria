@@ -23,7 +23,7 @@
     requestAnimationFrame(overlay.drawOverlay);
   }
 
-  // pseudo retenu d'une visite à l'autre
+  // pseudo retenu d une visite a l autre
   try {
     const pseudo = window.localStorage.getItem("valdoria.pseudo");
     if (pseudo) $("playerName").value = pseudo;
@@ -50,4 +50,11 @@
   $("saveBtn").addEventListener("click", emulator.downloadSave);
   $("debugToggle").addEventListener("click", debug.toggleDebugPanel);
 
-  // légen
+  // legende des boutons (bas droite)
+  $("legendeToggle").addEventListener("click", e => {
+    e.stopPropagation();
+    const p = $("legendePanel");
+    p.hidden ? p.removeAttribute("hidden") : p.setAttribute("hidden", "");
+  });
+  document.addEventListener("click", () => $("legendePanel").setAttribute("hidden", ""));
+})(window);
