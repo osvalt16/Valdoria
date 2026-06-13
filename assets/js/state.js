@@ -9,12 +9,11 @@
     pendingSaveName: "",
     pendingSaveRead: null,
     lastLocalSaveAt: null,
-    myPos:    null,
-    mySprite: null,     // id du sprite choisi (character.js)
+    myPos:  null,
     monde: null,        // connexion au monde partagé (network.js)
     // joueurs distants, indexés par identifiant de session Firebase.
     // Chaque entrée : { nom, g, m, tx, ty, lastTx, lastTy, dx, dy,
-    //                   visible, direction, movingUntil, sexe, sprite, t }
+    //                   visible, direction, movingUntil, sexe, t }
     joueurs: {}
   };
 })(window);

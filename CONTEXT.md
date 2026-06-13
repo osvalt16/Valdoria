@@ -35,15 +35,28 @@ Priorite actuelle : ameliorer l'experience multijoueur sans heberger ni distribu
 
 - `index.html` : structure de la page et imports.
 - `assets/css/main.css` : styles.
-- `assets/js/state.js` : etat partage.
-- `assets/js/dom.js` : helpers DOM.
+- `assets/js/dom.js` : helpers DOM ($, setStatus). Chargé en premier.
+- `assets/js/state.js` : etat partage (gba, myPos, joueurs…).
+- `assets/js/audio.js` : worklet audio (Catmull-Rom, passe-bas, controle de debit).
 - `assets/js/emulator.js` : chargement ROM, sauvegardes, controle emulateur.
-- `assets/js/position.js` : lecture de position en RAM.
-- `assets/js/network.js` : salons P2P et messages reseau.
-- `assets/js/overlay.js` : affichage du joueur distant.
-- `assets/js/debug.js` : panneau debug.
-- `assets/js/app.js` : branchement general.
-- `assets/js/touch-controls.js` : controles mobiles.
+- `assets/js/position.js` : lecture de position et genre en RAM GBA.
+- `assets/js/raccourcis.js` : panneau de personnalisation des touches clavier.
+- `assets/js/tchat.js` : tchat general et amis via Firebase.
+- `assets/js/network.js` : connexion au monde partage Firebase, envoi de position.
+- `assets/js/siolink.js` : emulation cable link GBA via WebRTC + signaling Firebase.
+- `assets/js/linkroom.js` : lobby Cable Club (combat / echange avec un ami).
+- `assets/js/sprites.js` : rendu du sprite du joueur distant (homme10.png / fille8.png).
+- `assets/js/overlay.js` : boucle d'affichage des joueurs distants sur le canvas overlay.
+- `assets/js/debug.js` : panneau debug (position, joueurs en ligne).
+- `assets/js/app.js` : branchement general, boucle de jeu.
+- `assets/js/touch-controls.js` : controles mobiles tactiles.
+- `assets/js/fullscreen.js` : gestion du mode plein ecran.
+- `assets/img/homme10.png` : sprite sheet du joueur masculin (3 cols x 4 lignes).
+- `assets/img/fille8.png` : sprite sheet du joueur feminin (3 cols x 4 lignes).
+
+Ordre de chargement dans index.html : dom → state → audio → emulator → position →
+raccourcis → tchat → network → siolink → linkroom → sprites → overlay → debug → app →
+touch-controls → fullscreen.
 
 ## Regles ROM et legal
 
