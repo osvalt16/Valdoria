@@ -20,8 +20,16 @@ class GameBoyAdvanceSIO {
 			id: 0,
 			error: 0,
 			busy: 0,
-
 			states: [0xffff, 0xffff, 0xffff, 0xffff]
+		};
+
+		// Normal 32-bit mode (câble link Pokémon Rouge Feu)
+		this.normal32 = {
+			busy: false,          // transfert en cours
+			irq: false,           // IRQ activée (SIOCNT bit 14)
+			clockInternal: false, // bit 0 : true = maître (horloge interne)
+			tx: 0,                // données à envoyer
+			rx: 0xFFFFFFFF        // données reçues (0xFFFFFFFF = pas de câble)
 		};
 
 		this.linkLayer = null;
@@ -48,9 +56,37 @@ class GameBoyAdvanceSIO {
 			case this.SIO_NORMAL_8:
 				this.core.STUB("8-bit transfer unsupported");
 				break;
-			case this.SIO_NORMAL_32:
-				this.core.STUB("32-bit transfer unsupported");
+
+			case this.SIO_NORMAL_32: {
+				// SIOCNT Normal 32-bit :
+				// bit 0  : clock source (0 = externe/esclave, 1 = interne/maître)
+				// bit 1  : vitesse horloge interne (0 = 256 kHz, 1 = 2 MHz)
+				// bit 7  : start/busy (1 = lancer le transfert)
+				// bit 12 : longueur (0 = 8-bit, 1 = 32-bit) — forcé à 1 ici
+				// bit 14 : IRQ enable
+				this.normal32.clockInternal = !!(value & 0x0001);
+				this.normal32.irq = !!(value & 0x4000);
+
+				if ((value & 0x0080) && !this.normal32.busy) {
+					// Lire les données TX depuis les registres IO
+					const regs = this.core.io.registers;
+					const lo = regs[this.core.io.SIODATA32_LO >> 1] & 0xFFFF;
+					const hi = regs[this.core.io.SIODATA32_HI >> 1] & 0xFFFF;
+					this.normal32.tx = ((hi << 16) | lo) >>> 0;
+					this.normal32.busy = true;
+
+					if (this.linkLayer) {
+						// Déléguer au câble link (siolink.js)
+						this.linkLayer.startNormal32Transfer(this.normal32.tx);
+					} else {
+						// Pas de câble : répondre immédiatement avec 0xFFFFFFFF
+						// (comportement "aucun autre joueur détecté")
+						setTimeout(() => this.completeNormal32Transfer(0xFFFFFFFF), 0);
+					}
+				}
 				break;
+			}
+
 			case this.SIO_MULTI:
 				this.multiplayer.baud = value & 0x0003;
 				if (this.linkLayer) {
@@ -65,63 +101,4 @@ class GameBoyAdvanceSIO {
 				}
 				this.irq = value & 0x4000;
 				break;
-			case this.SIO_UART:
-				this.core.STUB("UART unsupported");
-				break;
-			case this.SIO_GPIO:
-				// This register isn't used in general-purpose mode
-				break;
-			case this.SIO_JOYBUS:
-				this.core.STUB("JOY BUS unsupported");
-				break;
-		}
-	}
-	readSIOCNT() {
-		var value = (this.mode << 12) & 0xffff;
-		switch (this.mode) {
-			case this.SIO_NORMAL_8:
-				this.core.STUB("8-bit transfer unsupported");
-				break;
-			case this.SIO_NORMAL_32:
-				this.core.STUB("32-bit transfer unsupported");
-				break;
-			case this.SIO_MULTI:
-				value |= this.multiplayer.baud;
-				value |= this.multiplayer.si;
-				value |= !!this.sd << 3;
-				value |= this.multiplayer.id << 4;
-				value |= this.multiplayer.error;
-				value |= this.multiplayer.busy;
-				value |= !!this.multiplayer.irq << 14;
-				break;
-			case this.SIO_UART:
-				this.core.STUB("UART unsupported");
-				break;
-			case this.SIO_GPIO:
-				// This register isn't used in general-purpose mode
-				break;
-			case this.SIO_JOYBUS:
-				this.core.STUB("JOY BUS unsupported");
-				break;
-		}
-		return value;
-	}
-	read(slot) {
-		switch (this.mode) {
-			case this.SIO_NORMAL_32:
-				this.core.STUB("32-bit transfer unsupported");
-				break;
-			case this.SIO_MULTI:
-				return this.multiplayer.states[slot];
-			case this.SIO_UART:
-				this.core.STUB("UART unsupported");
-				break;
-			default:
-				this.core.WARN(
-					"Reading from transfer register in unsupported mode"
-				);
-				break;
-		}
-		return 0;
-	}
-}
+

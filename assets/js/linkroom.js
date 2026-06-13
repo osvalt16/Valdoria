@@ -103,25 +103,43 @@
     });
   }
 
+  function genSessionId() {
+    return monId + "-" + Math.random().toString(36).slice(2, 8);
+  }
+
   function envoyerDefi(cibleId, ciblePseudo, type) {
     if (!db || !monId) return;
+    const sid = genSessionId();
     db.ref("monde/defis/" + cibleId).set({
       de: monId,
       pseudo: (state.myPos && state.myPos.nom) || "Dresseur",
       tag: monTag || "",
       type: type || "combat",
+      sid,                      // session WebRTC partagée
       ts: firebase.database.ServerValue.TIMESTAMP
     });
     afficherAttente(ciblePseudo, type || "combat");
+
+    // Écouter l'acceptation pour lancer la session SIO en tant que maître
+    const monDefiRef = db.ref("monde/defis/" + monId);
+    monDefiRef.on("value", snap => {
+      const d = snap.val();
+      if (!d || !d.accepte) return;
+      monDefiRef.off();
+      monDefiRef.remove();
+      lancerSioLink(sid, true, type || "combat");
+    });
   }
 
   function accepterDefi() {
     if (!defiRecu || !db) return;
     const type = defiRecu.type || "combat";
-    // Notifie l'adversaire (Phase 2 : lancer la session SIO ici)
+    const sid  = defiRecu.sid  || ("fallback-" + Date.now());
+    // Notifie l'adversaire (maître) que c'est accepté
     db.ref("monde/defis/" + defiRecu.de).set({
       accepte: true,
       type,
+      sid,
       de: monId,
       pseudo: (state.myPos && state.myPos.nom) || "Dresseur",
       tag: monTag || "",
@@ -130,7 +148,28 @@
     if (defiRef) defiRef.remove();
     defiRecu = null;
     cacherDefi();
-    afficherPhase2(type);
+    // Lancer la session SIO en tant qu'esclave
+    lancerSioLink(sid, false, type);
+  }
+
+  function lancerSioLink(sid, master, type) {
+    const siolink = window.Valdoria.siolink;
+    if (!siolink || !db) { afficherPhase2(type); return; }
+
+    afficherConnexion(type);
+
+    siolink.connect(
+      db,
+      sid,
+      master,
+      () => {
+        // Canal WebRTC ouvert — câble link établi
+        afficherCableOuvert(type);
+      },
+      err => {
+        afficherErreurSio(err);
+      }
+    );
   }
 
   function refuserDefi() {
@@ -236,59 +275,24 @@
     if (lobby) lobby.setAttribute("hidden", "");
     const msg = el("linkroomAttenteMsg");
     const action = type === "echange" ? "l'échange" : "le combat";
-    if (msg) msg.textContent = "🔗 Connexion pour " + action + " établie ! (câble link en cours de développement…)";
+    if (msg) msg.textContent = "🔗 Connexion pour " + action + " établie !";
     const att = el("linkroomAttente");
     if (att) att.removeAttribute("hidden");
   }
 
-  /* ---- Détection de map --------------------------------------- */
-  function check(pos) {
-    if (!pos) return;
-    const maintenant = estSurMap(pos);
-    if (maintenant === dansLinkRoom) return;
-    dansLinkRoom = maintenant;
-    if (maintenant) {
-      rejoindre();
-      afficherLobby();
+  function afficherConnexion(type) {
+    const lobby = el("linkroomLobby");
+    if (lobby) lobby.setAttribute("hidden", "");
+    const msg = el("linkroomAttenteMsg");
+    const action = type === "echange" ? "l'échange" : "le combat";
+    if (msg) msg.textContent = "⏳ Établissement du câble link pour " + action + "…";
+    const att = el("linkroomAttente");
+    if (att) att.removeAttribute("hidden");
+  }
+
+  function afficherCableOuvert(type) {
+    const msg = el("linkroomAttenteMsg");
+    if (type === "echange") {
+      if (msg) msg.textContent = "🔗 Câble branché ! Parle au PNJ pour commencer l'échange.";
     } else {
-      partir();
-      cacherLobby();
-    }
-  }
-
-  /* ---- Init publique ----------------------------------------- */
-  function connectDb(database, id) {
-    db = database;
-    monId = id;
-  }
-
-  function definitTag(tag) {
-    monTag = tag;
-    // Met à jour la présence si déjà dans la salle
-    if (monRef && tag) monRef.update({ tag });
-  }
-
-  /* ---- Bindings UI ------------------------------------------- */
-  function initUI() {
-    const btnAlea     = el("linkroomBtnAlea");
-    const btnAmi      = el("linkroomBtnAmi");
-    const secAmis     = el("linkroomSectionAmis");
-    const btnAnnuler  = el("linkroomBtnAnnuler");
-    const btnAccepter = el("linkroomBtnAccepter");
-    const btnRefuser  = el("linkroomBtnRefuser");
-    const btnSaveMap  = el("linkroomBtnSaveMap");
-
-    if (btnAlea) btnAlea.addEventListener("click", combatAleatoire);
-
-    const btnEchange = el("linkroomBtnEchange");
-
-    if (btnAmi && secAmis) btnAmi.addEventListener("click", () => {
-      const dejaCombat = !secAmis.hasAttribute("hidden") && modeDefi === "combat";
-      modeDefi = "combat";
-      if (dejaCombat) { secAmis.setAttribute("hidden", ""); return; }
-      rafraichirAmis();
-      secAmis.removeAttribute("hidden");
-    });
-
-    if (btnEchange && secAmis) btnEchange.addEventListener("click", () => {
-      const dejaEchange = !secAmis.hasAttribute("hidden") && modeDe
+      if (msg)
