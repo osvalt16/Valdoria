@@ -54,6 +54,5 @@
   const drawerSoundBtn = $("drawerSoundBtn");
   if (drawerSoundBtn) drawerSoundBtn.addEventListener("click", emulator.toggleSound);
 
-  const drawerPlaySavInput = $("drawerPlaySavInput");
-  if (drawerPlaySavInput) drawerPlaySavInput.addEventListener("change", e => {
-    emu
+  const drawerImportBtn = $("drawerImportBtn");
+  if (drawerImportBtn) drawerImportBtn.addEventListener("click", () => $("playSavInput").cli
