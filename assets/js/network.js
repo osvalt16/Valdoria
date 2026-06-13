@@ -140,3 +140,7 @@
       t: firebase.database.ServerValue.TIMESTAMP
     });
  
+  }
+
+  window.Valdoria.network = { connectWorld, sendPos };
+})(window);
