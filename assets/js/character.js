@@ -1,20 +1,15 @@
 (function (window) {
   "use strict";
 
-  // Sélecteur de personnage jouable.
+  // Selecteur de personnage jouable.
   // Lit la liste depuis window.Valdoria.spritesConfig,
-  // affiche un aperçu canvas pour chaque sprite,
+  // affiche un apercu canvas pour chaque sprite,
   // sauvegarde le choix en localStorage et dans state.mySprite.
 
-  const state    = window.Valdoria.state;
-  const CLE      = "valdoria.sprite";
-  const CELL_W   = 16;   // largeur d'une cellule source
-  const CELL_H   = 24;   // hauteur d'une cellule source
-  const PRV_W    = 40;   // largeur de l'aperçu canvas (2.5×)
-  const PRV_H    = 60;   // hauteur de l'aperçu canvas (2.5×)
-  // Frame idle face caméra : colonne 1 (frame=1), ligne 0 (direction=bas)
-  const PRV_SX   = CELL_W;
-  const PRV_SY   = 0;
+  const state  = window.Valdoria.state;
+  const CLE    = "valdoria.sprite";
+  const PRV_W  = 40;   // largeur apercu canvas
+  const PRV_H  = 60;   // hauteur apercu canvas
 
   /* ---- Persistance -------------------------------------------- */
   function chargeSprite() {
@@ -26,7 +21,7 @@
     state.mySprite = id;
   }
 
-  /* ---- Images préchargées ------------------------------------- */
+  /* ---- Images preChargees ------------------------------------ */
   const cache = {};
   function getImage(src) {
     if (!cache[src]) {
@@ -37,15 +32,14 @@
     return cache[src];
   }
 
-  /* ---- Aperçu canvas ------------------------------------------ */
+  /* ---- Apercu canvas ------------------------------------------ */
   function dessinerApercu(canvas, src) {
     const im = getImage(src);
     const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
 
     function draw() {
-      // Taille de cellule dynamique : image divisée en 3 cols × 4 lignes
+      // Taille de cellule dynamique : image divisee en 3 cols x 4 lignes
       const cw = im.naturalWidth  / 3;
       const ch = im.naturalHeight / 4;
       // Frame idle (colonne 1), direction bas (ligne 0)
@@ -57,7 +51,7 @@
     else im.onload = draw;
   }
 
-  /* ---- Construire la grille de sélection ---------------------- */
+  /* ---- Construire la grille de selection ---------------------- */
   function construireGrille(conteneur, actuel, onChoix) {
     const config = window.Valdoria.spritesConfig || [];
     conteneur.innerHTML = "";
@@ -92,27 +86,30 @@
 
   /* ---- Init --------------------------------------------------- */
   function init() {
-    // Charger le choix sauvegardé
-    const config  = window.Valdoria.spritesConfig || [];
+    const config    = window.Valdoria.spritesConfig || [];
     const sauvegarde = chargeSprite();
-    // Valider que l'id existe encore dans la config
-    const existe = config.some(p => p.id === sauvegarde);
-    const actuel = existe ? sauvegarde : (config[0] ? config[0].id : null);
-    state.mySprite = actuel;
+    const existe    = config.some(p => p.id === sauvegarde);
+    const actuel    = existe ? sauvegarde : (config[0] ? config[0].id : null);
+    state.mySprite  = actuel;
 
-    // Sélecteur dans la page d'accueil (#setup)
     const setupListe = document.getElementById("persoListeSetup");
     if (setupListe) {
       construireGrille(setupListe, actuel, id => {
-        // Synchroniser aussi le sélecteur in-game si ouvert
         const ingame = document.getElementById("persoListeIngame");
         if (ingame) construireGrille(ingame, id, null);
       });
     }
 
-    // Sélecteur in-game (dans les options PokéKanto)
     const ingameListe = document.getElementById("persoListeIngame");
     if (ingameListe) {
       construireGrille(ingameListe, actuel, id => {
         const setup = document.getElementById("persoListeSetup");
-   
+        if (setup) construireGrille(setup, id, null);
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+
+  window.Valdoria.character = { init, chargeSprite };
+})(window);

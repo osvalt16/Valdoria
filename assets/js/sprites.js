@@ -1,8 +1,6 @@
 (function (window) {
   "use strict";
 
-  const CELL_W = 16;
-  const CELL_H = 24;
   const DRAW_W = 32;
   const DRAW_H = 48;
   const FEET   = DRAW_H - 1;
@@ -10,7 +8,7 @@
   const CYCLE  = [0, 1, 2, 1];
   const TILE   = 32;
 
-  // Cache d'images indexé par src (chargement à la demande)
+  // Cache d'images indexe par src (chargement a la demande)
   const imageCache = {};
 
   function getImage(src) {
@@ -23,22 +21,21 @@
   }
 
   // Trouve le src du sprite pour un joueur distant.
-  // Priorité : sprite explicitement choisi > genre > défaut garçon.
+  // Priorite : sprite explicitement choisi > genre > defaut garcon.
   function srcFor(friend) {
     const config = window.Valdoria.spritesConfig || [];
     if (friend.sprite) {
       const perso = config.find(p => p.id === friend.sprite);
       if (perso) return perso.src;
     }
-    // Fallback : genre lu depuis la ROM
     if (friend.sexe === 1) {
-      const fille = config.find(p => p.id === "fille");
+      const fille = config.find(p => p.id === "fille1");
       if (fille) return fille.src;
-      return "assets/img/remote_fille.png";
+      return "assets/img/Fille1.png";
     }
-    const homme = config.find(p => p.id === "homme");
+    const homme = config.find(p => p.id === "homme1");
     if (homme) return homme.src;
-    return "assets/img/remote_homme.png";
+    return "assets/img/homme1.png";
   }
 
   function drawFallback(ctx, x, y) {
@@ -61,9 +58,14 @@
     ctx.ellipse(x + TILE / 2, y + TILE - 3, 10, 3, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Taille de cellule dynamique : image divisée en 3 cols × 4 lignes
+    // Taille de cellule dynamique : image divisee en 3 cols x 4 lignes
     const cw = im.naturalWidth  / 3;
     const ch = im.naturalHeight / 4;
     const dx = x + TILE / 2 - DRAW_W / 2;
     const dy = y + TILE - FEET;
     ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(im, frame * cw, row * ch, cw, ch, dx, dy, DRAW_W, DRAW_H);
+  }
+
+  window.Valdoria.sprites = { draw };
+})(window);
