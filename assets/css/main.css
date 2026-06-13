@@ -141,6 +141,67 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
 #debugPanel { display:none; font-family:monospace; font-size:.8rem; color:#555; text-align:left; white-space:pre; }
 #debugToggle { color:#9a93ad; font-size:.75rem; cursor:pointer; text-decoration:underline; margin-top:8px; display:inline-block; }
 
+/* ---------- LED online/offline ---------- */
+.ami-led {
+  display:inline-block; width:9px; height:9px; border-radius:50%; flex-shrink:0;
+}
+.ami-led.online  { background:#39d353; box-shadow:0 0 6px #39d353, 0 0 12px rgba(57,211,83,.4); }
+.ami-led.offline { background:#cc3030; box-shadow:0 0 5px #cc3030, 0 0 10px rgba(204,48,48,.35); }
+
+/* --- Drawer amis : mon tag --- */
+.drawer-tag-info {
+  font-size:.78rem; color:#6e6890; margin:0 0 8px; line-height:1.6;
+  word-break:break-all;
+}
+.drawer-tag-info .tchat-changer {
+  background:none; border:1px solid var(--bordure); border-radius:5px;
+  padding:2px 7px; font-size:.72rem; color:var(--violet2); cursor:pointer;
+  margin-left:4px;
+}
+
+/* --- Drawer amis : ajout --- */
+.drawer-ami-ajout {
+  display:flex; gap:6px; margin:0 0 10px;
+}
+.drawer-ami-ajout input {
+  flex:1; min-width:0; padding:8px 10px; border-radius:8px;
+  border:2px solid var(--bordure); font-size:.82rem; color:var(--texte-sombre);
+  background:#fff;
+}
+.drawer-ami-ajout button {
+  background:linear-gradient(180deg,#3c78ff,#2255cc); color:#fff; border:none;
+  border-radius:8px; padding:8px 12px; font-size:.8rem; font-weight:700;
+  cursor:pointer; box-shadow:0 2px 0 #163a8e; white-space:nowrap;
+}
+.drawer-ami-ajout button:active { transform:translateY(2px); box-shadow:0 0 0 #163a8e; }
+
+/* --- Drawer amis : liste --- */
+#drawerAmiListe {
+  display:flex; flex-direction:column;
+}
+.ami-ligne {
+  display:flex; align-items:center; gap:8px; padding:8px 4px;
+  border-bottom:1px solid var(--creme2); font-size:.82rem; color:var(--texte-sombre);
+}
+.ami-ligne:last-child { border-bottom:none; }
+.ami-tag-texte {
+  flex:1; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.ami-statut {
+  font-size:.72rem; color:var(--muted); flex-shrink:0;
+}
+.ami-ligne > button {
+  border:none; background:none; color:var(--rouge2); cursor:pointer;
+  font-size:.82rem; padding:2px 4px; flex-shrink:0; line-height:1;
+}
+.ami-vide {
+  font-size:.8rem; color:var(--muted); text-align:center; margin:10px 0 4px;
+  font-style:italic;
+}
+
+/* --- Chips sidebar avec LED --- */
+.tag-puce .ami-led { width:7px; height:7px; }
+
 /* ---------- Cable Club : configuration (dans les options) ---------- */
 .linkroom-config-titre { font-weight:700; font-size:.88rem; margin:0 0 4px; color:var(--texte-sombre); }
 #linkroomBtnSaveMap { background:linear-gradient(180deg,var(--violet),var(--violet2)); color:#fff; border:none;
@@ -349,8 +410,8 @@ body.is-playing .mobile-drawer-head { display:flex; }
     border-width:8px;
     border-radius:12px;
   }
-  body.is-playing #screenZone { flex-direction:column; flex:0 0 auto; }
-  body.is-playing #screenSidebar { display:none !important; }
+  body.is-playing #screenZone { flex-direction:column; }
+  body.is-playing #screenSidebar { flex-direction:row; flex-wrap:wrap; }
   body.is-playing #friendInfo {
     min-height:1.1em;
     margin:4px 0;
@@ -360,12 +421,11 @@ body.is-playing .mobile-drawer-head { display:flex; }
 
   /* portrait : le tchat occupe tout l'espace entre l'écran et le pad */
   body.is-playing #tchat {
-    display:flex !important;
+    display:flex;
     flex-direction:column;
-    flex:1 1 0;
-    min-height:80px;
-    max-height:35dvh;
-    margin:4px 0 8px;
+    flex:1 1 auto;
+    min-height:96px;
+    margin:4px 0 12px;   /* espace tampon au-dessus du pad : moins de faux appuis */
     padding:6px;
     border-width:2px;
   }
@@ -608,13 +668,6 @@ body.is-playing #legendeZone {
   display:block; position:fixed;
   right:14px; bottom:14px; z-index:25;
 }
-@media (max-width: 820px), (max-height: 520px), (pointer: coarse) {
-  body.is-playing #legendeZone {
-    display:block; z-index:25;
-    right:auto; left:14px; bottom:calc(env(safe-area-inset-bottom) + 10px);
-  }
-  body.is-playing #legendePanel { right:auto; left:0; bottom:36px; }
-}
 #legendeToggle {
   width:28px; height:28px; border-radius:50%;
   background:rgba(23,16,34,.72); border:1px solid rgba(255,255,255,.18);
@@ -635,69 +688,12 @@ body.is-playing #legendeZone {
 #legendePanel li { display:flex; align-items:center; gap:9px; font-size:.78rem; color:rgba(255,255,255,.8); }
 #legendePanel li span { font-size:1rem; flex-shrink:0; }
 
-/* ---------- onglets tchat dans drawer mobile ---------- */
-.mobile-onglets-panel { display:none; padding:10px 12px; margin-top:0; }
-.tchat-onglets-mobile {
-  display:flex; flex-direction:row; gap:8px;
-}
-.tchat-onglets-mobile button {
-  flex:1; padding:10px 8px; border-radius:10px;
-  border:2px solid var(--bordure); background:#e7e2f2; color:var(--texte-sombre);
-  font-size:.85rem; font-weight:700; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; gap:6px;
-  transition:background .12s;
-}
-.tchat-onglets-mobile button.actif {
-  background:linear-gradient(180deg,#3c78ff,#2255cc); color:#fff;
-  border-color:#163a8e; box-shadow:0 2px 0 #163a8e;
-}
+/* ---------- sélecteur de personnage ---------- */
 
-@media (max-width: 820px), (max-height: 520px), (pointer: coarse) {
-  .mobile-onglets-panel { display:none; }
-  body.is-playing #tchat { position:relative; }
-  body.is-playing #tchat .tchat-onglets {
-    display:flex !important;
-    flex-direction:row; gap:4px;
-    position:absolute; top:6px; right:6px; z-index:2;
-    border-bottom:none; margin-bottom:0;
-  }
-  body.is-playing #tchat .tchat-onglets button {
-    padding:3px 8px; font-size:.7rem; border-radius:7px;
-    border:1.5px solid var(--bordure); background:#e7e2f2; color:var(--texte-sombre);
-    font-weight:700; white-space:nowrap; margin-bottom:0;
-  }
-  body.is-playing #tchat .tchat-onglets button.actif {
-    background:linear-gradient(180deg,#3c78ff,#2255cc); color:#fff;
-    border-color:#163a8e;
-  }
-  body.is-playing #tchatMessages { padding-top:28px; }
-  /* PC only : cacher explication clavier et config Cable Club */
-  .panel-clavier { display:none !important; }
-  #linkroomConfigPanel { display:none !important; }
-}
 
-/* ---- Boutons actions dans drawer mobile ---- */
-.mobile-actions-panel { display:none; }
-#actionBarMobile {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:6px;
-}
-#actionBarMobile button, #actionBarMobile .action-btn {
-  background:linear-gradient(180deg,var(--rouge),var(--rouge2)); color:#fff; border:none;
-  border-radius:9px; font-size:1.1rem; cursor:pointer; font-weight:700;
-  box-shadow:0 3px 0 #7e1300; display:flex; align-items:center; justify-content:center;
-  height:44px; padding:0;
-}
-#actionBarMobile button:active, #actionBarMobile .action-btn:active {
-  transform:translateY(2px); box-shadow:0 1px 0 #7e1300;
-}
-#actionBarMobile button:disabled { opacity:.4; cursor:default; transform:none; }
-#actionBarMobile #saveBtnMobile {
-  background:linear-gradient(180deg,#6b5d7d,#52465f); box-shadow:0 3px 0 #38304a;
-}
-#actionBarMobile #linkroomBtnSaveMap3 {
-  background:linear-gradient(180deg,var(--violet),var(--violet2));
-  box-shadow:0 3px 0 var(--violet3);
-}
-@media (max-width: 820px), (max-height: 520px), (pointer: coarse) {
-  .mobile-actions-panel { display:block; }
-}
+
+
+
+
+
+

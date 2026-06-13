@@ -53,6 +53,7 @@
   }
 
   function isoleClavier(el) {
+    if (!el) return;
     ["keydown", "keyup", "keypress"].forEach(t =>
       el.addEventListener(t, e => e.stopPropagation()));
   }
@@ -90,7 +91,6 @@
       for (const d of historiques.amis) boite.appendChild(ligneMessage(d));
     } else {
       // Général : messages publics + messages amis mélangés, triés par temps
-      // Les messages d'amis apparaissent en rose grâce à la classe .ami
       const tous = [...historiques.general, ...historiques.amis]
         .sort((a, b) => (a.t || 0) - (b.t || 0));
       for (const d of tous) boite.appendChild(ligneMessage(d));
@@ -98,15 +98,75 @@
     boite.scrollTop = boite.scrollHeight;
   }
 
+  // Rend la liste d'amis avec LED online/offline dans un élément donné
+  function rendListeAmis(listeEl, style) {
+    if (!listeEl) return;
+    listeEl.textContent = "";
+    const joueurs = (window.Valdoria.state && window.Valdoria.state.joueurs) || {};
+
+    if (amis.length === 0) {
+      const vide = document.createElement("p");
+      vide.className = "ami-vide";
+      vide.textContent = "Aucun ami ajouté pour l'instant.";
+      listeEl.appendChild(vide);
+      return;
+    }
+
+    for (const tag of amis) {
+      const enLigne = Object.values(joueurs).some(j => j.tag === tag);
+
+      if (style === "chips") {
+        // Version compacte pour la sidebar desktop
+        const puce = document.createElement("span");
+        puce.className = "tag-puce";
+        const led = document.createElement("span");
+        led.className = "ami-led " + (enLigne ? "online" : "offline");
+        puce.appendChild(led);
+        puce.appendChild(document.createTextNode(" " + tag + " "));
+        const x = document.createElement("button");
+        x.type = "button";
+        x.textContent = "✕";
+        x.title = "Retirer";
+        x.addEventListener("click", () => {
+          amis = amis.filter(t => t !== tag);
+          sauveAmis(); abonneAmis(); rend();
+        });
+        puce.appendChild(x);
+        listeEl.appendChild(puce);
+      } else {
+        // Version liste pour le drawer mobile
+        const ligne = document.createElement("div");
+        ligne.className = "ami-ligne";
+        const led = document.createElement("span");
+        led.className = "ami-led " + (enLigne ? "online" : "offline");
+        const nomEl = document.createElement("span");
+        nomEl.className = "ami-tag-texte";
+        nomEl.textContent = tag;
+        const statut = document.createElement("span");
+        statut.className = "ami-statut";
+        statut.textContent = enLigne ? "en ligne" : "hors ligne";
+        const x = document.createElement("button");
+        x.type = "button";
+        x.textContent = "✕";
+        x.title = "Retirer";
+        x.addEventListener("click", () => {
+          amis = amis.filter(t => t !== tag);
+          sauveAmis(); abonneAmis(); rend();
+        });
+        ligne.appendChild(led);
+        ligne.appendChild(nomEl);
+        ligne.appendChild(statut);
+        ligne.appendChild(x);
+        listeEl.appendChild(ligne);
+      }
+    }
+  }
+
   function rend() {
     $("tchatOngletGeneral").classList.toggle("actif", canal === "general");
     $("tchatOngletAmis").classList.toggle("actif", canal === "amis");
-    const mg = $("tchatOngletGeneralMobile");
-    const ma = $("tchatOngletAmisMobile");
-    if (mg) mg.classList.toggle("actif", canal === "general");
-    if (ma) ma.classList.toggle("actif", canal === "amis");
 
-    // panneau options : mon tag + bouton copier
+    // Sidebar desktop : mon tag + bouton copier
     const info = $("tchatCodeInfo");
     info.textContent = "";
     if (!monTag) info.textContent = "Ton tag ami apparaîtra quand ta partie sera chargée.";
@@ -123,27 +183,31 @@
       info.appendChild(copier);
     }
 
-    const liste = $("tagAmiListe");
-    liste.textContent = "";
-    for (const tag of amis) {
-      const puce = document.createElement("span");
-      puce.className = "tag-puce";
-      puce.textContent = tag + " ";
-      const x = document.createElement("button");
-      x.type = "button";
-      x.textContent = "✕";
-      x.title = "Retirer";
-      x.addEventListener("click", () => {
-        amis = amis.filter(t => t !== tag);
-        sauveAmis();
-        abonneAmis();
-        rend();
-      });
-      puce.appendChild(x);
-      liste.appendChild(puce);
+    // Drawer mobile : mon tag
+    const drawerInfo = $("drawerTagInfo");
+    if (drawerInfo) {
+      drawerInfo.textContent = "";
+      if (!monTag) {
+        drawerInfo.textContent = "Lance le jeu pour obtenir ton tag.";
+      } else {
+        drawerInfo.appendChild(document.createTextNode("Mon tag : " + monTag + " "));
+        const copier2 = document.createElement("button");
+        copier2.type = "button";
+        copier2.className = "tchat-changer";
+        copier2.textContent = "copier";
+        copier2.addEventListener("click", () => {
+          try { navigator.clipboard.writeText(monTag); copier2.textContent = "copié !"; } catch (e) {}
+          setTimeout(() => { copier2.textContent = "copier"; }, 1500);
+        });
+        drawerInfo.appendChild(copier2);
+      }
     }
 
-    // parler exige une partie chargée avec un nom de héros, partout
+    // Listes d'amis
+    rendListeAmis($("tagAmiListe"), "chips");
+    rendListeAmis($("drawerAmiListe"), "list");
+
+    // parler exige une partie chargée avec un nom de héros
     const champ = $("tchatInput");
     champ.disabled = !monTag;
     champ.placeholder = !monTag
@@ -155,19 +219,17 @@
   function ajoute(quel, s) {
     const d = s.val();
     if (!d || !d.nom || !d.texte) return;
-    // déjà périmé : on le retire aussi de la base (autorisé par les règles)
+    // déjà périmé : on le retire aussi de la base
     if ((d.t || 0) < Date.now() - DUREE_MS) { s.ref.remove().catch(() => {}); return; }
     d._ref = s.ref;
     const h = historiques[quel];
     h.push(d);
-    h.sort((a, b) => (a.t || 0) - (b.t || 0));   // plusieurs flux amis fusionnés
+    h.sort((a, b) => (a.t || 0) - (b.t || 0));
     if (h.length > 80) h.splice(0, h.length - 80);
-    // re-rendre si c'est le bon canal, ou si un message ami arrive en vue Général
     if (canal === quel || (quel === "amis" && canal === "general")) rendMessages();
   }
 
-  // efface au fil de l'eau les messages de plus de 5 minutes, à l'écran
-  // et dans la base (le premier client qui les voit s'en charge)
+  // efface au fil de l'eau les messages de plus de 5 minutes
   function purgePerimes() {
     const limite = Date.now() - DUREE_MS;
     let change = false;
@@ -195,8 +257,9 @@
     }
   }
 
-  function ajouteAmi() {
-    const champ = $("tagAmiInput");
+  function ajouteAmi(champEl) {
+    const champ = champEl || $("tagAmiInput");
+    if (!champ) return;
     const tag = champ.value.trim();
     if (!FORMAT_TAG.test(tag)) { champ.value = ""; champ.placeholder = "Format : Nom#1234"; return; }
     if (tag === monTag || amis.includes(tag) || amis.length >= MAX_AMIS) { champ.value = ""; return; }
@@ -214,23 +277,39 @@
     abonneAmis();
     setInterval(purgePerimes, 10000);
 
+    // Refresh statut online/offline des amis toutes les 5s
+    setInterval(() => {
+      rendListeAmis($("tagAmiListe"), "chips");
+      rendListeAmis($("drawerAmiListe"), "list");
+    }, 5000);
+
     isoleClavier($("tchatInput"));
     isoleClavier($("tagAmiInput"));
+    isoleClavier($("drawerAmiInput"));
+
     $("tchatOngletGeneral").addEventListener("click", () => { canal = "general"; rend(); });
     $("tchatOngletAmis").addEventListener("click", () => { canal = "amis"; rend(); });
-    const mg2 = $("tchatOngletGeneralMobile");
-    const ma2 = $("tchatOngletAmisMobile");
-    if (mg2) mg2.addEventListener("click", () => { canal = "general"; rend(); });
-    if (ma2) ma2.addEventListener("click", () => { canal = "amis"; rend(); });
-    $("tagAmiAjouter").addEventListener("click", ajouteAmi);
-    $("tagAmiInput").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); ajouteAmi(); } });
+
+    // Sidebar desktop
+    $("tagAmiAjouter").addEventListener("click", () => ajouteAmi($("tagAmiInput")));
+    $("tagAmiInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") { e.preventDefault(); ajouteAmi($("tagAmiInput")); }
+    });
+
+    // Drawer mobile
+    const drawerBtn = $("drawerAmiAjouter");
+    const drawerInput = $("drawerAmiInput");
+    if (drawerBtn) drawerBtn.addEventListener("click", () => ajouteAmi(drawerInput));
+    if (drawerInput) drawerInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") { e.preventDefault(); ajouteAmi(drawerInput); }
+    });
 
     $("tchatForm").addEventListener("submit", e => {
       e.preventDefault();
       const champ = $("tchatInput");
       const texte = champ.value.trim().slice(0, 120);
       const now = Date.now();
-      if (!monTag) return;            // pas de partie chargée = pas de tchat
+      if (!monTag) return;
       dernierEnvoi = now;
       const ref = canal === "general"
         ? db.ref("monde/tchat")
