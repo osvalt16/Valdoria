@@ -87,8 +87,14 @@
       }
       if (amis.length === 0)
         boite.appendChild(ligneInfo("Donne ton tag " + monTag + " à tes amis et ajoute les leurs ci-dessus : l'ajout mutuel ouvre la conversation."));
+      for (const d of historiques.amis) boite.appendChild(ligneMessage(d));
+    } else {
+      // Général : messages publics + messages amis mélangés, triés par temps
+      // Les messages d'amis apparaissent en rose grâce à la classe .ami
+      const tous = [...historiques.general, ...historiques.amis]
+        .sort((a, b) => (a.t || 0) - (b.t || 0));
+      for (const d of tous) boite.appendChild(ligneMessage(d));
     }
-    for (const d of historiques[canal]) boite.appendChild(ligneMessage(d));
     boite.scrollTop = boite.scrollHeight;
   }
 
@@ -152,7 +158,8 @@
     h.push(d);
     h.sort((a, b) => (a.t || 0) - (b.t || 0));   // plusieurs flux amis fusionnés
     if (h.length > 80) h.splice(0, h.length - 80);
-    if (canal === quel) rendMessages();
+    // re-rendre si c'est le bon canal, ou si un message ami arrive en vue Général
+    if (canal === quel || (quel === "amis" && canal === "general")) rendMessages();
   }
 
   // efface au fil de l'eau les messages de plus de 5 minutes, à l'écran
@@ -216,20 +223,4 @@
       const texte = champ.value.trim().slice(0, 120);
       const now = Date.now();
       if (!texte || now - dernierEnvoi < 1000) return;     // anti-spam simple
-      if (!monTag) return;            // pas de partie chargée = pas de tchat
-      dernierEnvoi = now;
-      const ref = canal === "general"
-        ? db.ref("monde/tchat")
-        : db.ref("monde/tchatAmis/" + cle(monTag));
-      ref.push({
-        nom: pseudoFn(), texte: texte, tag: monTag || null,
-        t: firebase.database.ServerValue.TIMESTAMP
-      });
-      champ.value = "";
-    });
-
-    rend();
-  }
-
-  window.Valdoria.tchat = { connect, definitNom, getTag: () => monTag };
-})(window);
+      if (!monTag) re
