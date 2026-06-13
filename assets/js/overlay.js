@@ -8,6 +8,9 @@
   const PLAYER_PX = 112;
   const PLAYER_PY = 72;
 
+  // Suivi du joueur local pour animation et direction
+  const moi = { lastX: null, lastY: null, direction: "down", movingUntil: 0 };
+
   function drawName(ctx, name, x, y) {
     ctx.font = "bold 12px sans-serif";
     ctx.textAlign = "center";
@@ -24,9 +27,10 @@
 
     ctx.clearRect(0, 0, 480, 320);
 
-    // en combat/cinématique, rien ne doit se dessiner par-dessus le jeu
-    let ailleurs = 0;
     if (myPos && state.surCarte !== false) {
+
+      // ---- Autres joueurs ----
+      let ailleurs = 0;
       for (const id of Object.keys(state.joueurs)) {
         const j = state.joueurs[id];
         if (j.g !== myPos.g || j.m !== myPos.m) { j.visible = false; ailleurs++; continue; }
@@ -44,17 +48,37 @@
           drawName(ctx, j.nom, X, Y);
         }
       }
+
+      // ---- Sprite du joueur local (par-dessus le sprite ROM) ----
+      if (state.mySprite) {
+        // Detecter le mouvement pour animer
+        if (moi.lastX === null) { moi.lastX = myPos.x; moi.lastY = myPos.y; }
+        if (myPos.x !== moi.lastX || myPos.y !== moi.lastY) {
+          const dx = myPos.x - moi.lastX;
+          const dy = myPos.y - moi.lastY;
+          if (Math.abs(dx) >= Math.abs(dy))
+            moi.direction = dx > 0 ? "right" : "left";
+          else
+            moi.direction = dy > 0 ? "down" : "up";
+          moi.movingUntil = Date.now() + 500;
+          moi.lastX = myPos.x;
+          moi.lastY = myPos.y;
+        }
+        sprites.draw(ctx, PLAYER_PX * SCALE, PLAYER_PY * SCALE, {
+          sprite: state.mySprite,
+          sexe: null,
+          direction: moi.direction,
+          movingUntil: moi.movingUntil
+        });
+      }
+
     }
 
     const total = Object.keys(state.joueurs).length;
     if (state.surCarte === false)
       $("friendInfo").textContent = "";
     else if (state.monde && !myPos)
-      $("friendInfo").textContent = "⏳ Recherche de ta position en mémoire… (sois sur la map, en train de marcher)";
-    else if (ailleurs > 0)
-      $("friendInfo").textContent = "📍 " + ailleurs + (ailleurs > 1 ? " joueurs explorent" : " joueur explore") + " d'autres zones…";
-    else if (total === 0 && state.monde && myPos)
-      $("friendInfo").textContent = "";
+      $("friendInfo").textContent = "En attente de ta position... (marche un peu en jeu)";
     else
       $("friendInfo").textContent = "";
 
