@@ -48,7 +48,7 @@
     }
 
     if (im.complete && im.naturalWidth) draw();
-    else im.onload = draw;
+    else im.addEventListener('load', draw, { once: true });
   }
 
   /* ---- Construire la grille de selection ---------------------- */
