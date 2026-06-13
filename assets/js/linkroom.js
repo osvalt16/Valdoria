@@ -295,4 +295,95 @@
     if (type === "echange") {
       if (msg) msg.textContent = "🔗 Câble branché ! Parle au PNJ pour commencer l'échange.";
     } else {
-      if (msg)
+      if (msg)      if (msg) msg.textContent = "🔗 Câble branché ! Parle au PNJ pour commencer le combat.";
+    }
+  }
+
+  function afficherErreurSio(err) {
+    const msg = el("linkroomAttenteMsg");
+    if (msg) msg.textContent = "❌ Connexion échouée : " + (err || "erreur inconnue");
+  }
+
+  /* ---- Détection de map --------------------------------------- */
+  function check(pos) {
+    if (!pos) return;
+    const maintenant = estSurMap(pos);
+    if (maintenant === dansLinkRoom) return;
+    dansLinkRoom = maintenant;
+    if (maintenant) {
+      rejoindre();
+      afficherLobby();
+    } else {
+      partir();
+      cacherLobby();
+    }
+  }
+
+  /* ---- Init publique ----------------------------------------- */
+  function connectDb(database, id) {
+    db = database;
+    monId = id;
+  }
+
+  function definitTag(tag) {
+    monTag = tag;
+    // Met à jour la présence si déjà dans la salle
+    if (monRef && tag) monRef.update({ tag });
+  }
+
+  /* ---- Bindings UI ------------------------------------------- */
+  function initUI() {
+    const btnAlea     = el("linkroomBtnAlea");
+    const btnAmi      = el("linkroomBtnAmi");
+    const secAmis     = el("linkroomSectionAmis");
+    const btnAnnuler  = el("linkroomBtnAnnuler");
+    const btnAccepter = el("linkroomBtnAccepter");
+    const btnRefuser  = el("linkroomBtnRefuser");
+    const btnSaveMap  = el("linkroomBtnSaveMap");
+
+    if (btnAlea) btnAlea.addEventListener("click", combatAleatoire);
+
+    const btnEchange = el("linkroomBtnEchange");
+
+    if (btnAmi && secAmis) btnAmi.addEventListener("click", () => {
+      const dejaCombat = !secAmis.hasAttribute("hidden") && modeDefi === "combat";
+      modeDefi = "combat";
+      if (dejaCombat) { secAmis.setAttribute("hidden", ""); return; }
+      rafraichirAmis();
+      secAmis.removeAttribute("hidden");
+    });
+
+    if (btnEchange && secAmis) btnEchange.addEventListener("click", () => {
+      const dejaEchange = !secAmis.hasAttribute("hidden") && modeDefi === "echange";
+      modeDefi = "echange";
+      if (dejaEchange) { secAmis.setAttribute("hidden", ""); return; }
+      rafraichirAmis();
+      secAmis.removeAttribute("hidden");
+    });
+
+    if (btnAnnuler) btnAnnuler.addEventListener("click", () => {
+      partir();
+      cacherLobby();
+      dansLinkRoom = false;
+    });
+
+    if (btnAccepter) btnAccepter.addEventListener("click", accepterDefi);
+    if (btnRefuser)  btnRefuser.addEventListener("click", refuserDefi);
+
+    if (btnSaveMap) btnSaveMap.addEventListener("click", () => {
+      const pos = state.myPos;
+      if (!pos) {
+        btnSaveMap.textContent = "⚠️ Lance d’abord le jeu !";
+        setTimeout(() => { btnSaveMap.textContent = "📍 Enregistrer cette map"; }, 2000);
+        return;
+      }
+      sauveMap(pos.g, pos.m);
+      btnSaveMap.textContent = "✅ Map " + pos.g + "." + pos.m + " enregistrée";
+      setTimeout(() => { btnSaveMap.textContent = "📍 Enregistrer cette map"; }, 3000);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", initUI);
+
+  window.Valdoria.linkroom = { connectDb, check, definitTag, sauveMap };
+})(window);
