@@ -1,34 +1,37 @@
 # Système d'échange Pokémon — Valdoria
 
-## Résumé
+## État actuel
 
-Les échanges se déroulent au **Cable Club** (2ème étage du Centre Pokémon), au même endroit que les combats. Tu choisis ton ami depuis le lobby, il accepte ta demande, et quand la Phase 2 sera prête, la ROM gère l'échange en natif via le câble link simulé.
+Le système d'échange est opérationnel côté infrastructure. Il utilise exactement la même connexion WebRTC et le même câble link SIO que les combats — seule la sélection dans les menus natifs du jeu diffère.
 
 ---
 
 ## Comment faire un échange
 
-### 1. Aller au Cable Club
+### 1. Configurer la map du Cable Club (première fois)
 
-Entre dans un Centre Pokémon et monte au 2ème étage (Cable Club). Le lobby Valdoria s'ouvre automatiquement si la map a été configurée (voir section Configuration).
+1. Lance une ROM Pokémon Rouge Feu
+2. Va dans un Centre Pokémon → entre dans le Cable Club (2ème étage)
+3. Ouvre le menu **PokéKanto** → section **⚔️ Cable Club**
+4. Clique **📍 Enregistrer cette map**
 
-### 2. Lancer une demande d'échange
+### 2. Trouver un partenaire d'échange
 
-Dans le lobby, clique **🔄 Échanger avec un ami ▾** pour ouvrir la liste de tes amis en ligne dans la salle.
+Dans le lobby, clique **🔄 Échanger avec un ami ▾** pour voir tes amis présents dans la salle.
 
 - Seuls les amis avec qui tu as échangé ton tag `Nom#1234` apparaissent.
-- Ton ami doit lui aussi être dans le Cable Club au même moment.
+- Les échanges aléatoires ne sont pas disponibles (un échange nécessite un accord mutuel).
 
-Clique sur le nom de ton ami → la demande est envoyée via Firebase.
+### 3. Établir la connexion
 
-### 3. Recevoir une demande d'échange
+Quand l'ami accepte :
 
-Une notification apparaît :
+1. L'UI affiche **"⏳ Établissement du câble link…"**
+2. Puis **"🔗 Câble branché ! Parle au PNJ pour commencer l'échange."**
 
-> **NomDresseur** veut échanger des Pokémon avec toi !  
-> ✅ Accepter · ❌ Refuser
+### 4. Lancer l'échange dans le jeu
 
-Si tu acceptes, les deux joueurs reçoivent la confirmation. En Phase 2, la ROM lance automatiquement le menu d'échange natif.
+Une fois le câble branché, parle au PNJ du Cable Club. Le jeu propose ses menus d'échange natifs — sélectionne le Pokémon à échanger comme tu le ferais sur une vraie GBA.
 
 ---
 
@@ -37,61 +40,60 @@ Si tu acceptes, les deux joueurs reçoivent la confirmation. En Phase 2, la ROM 
 | | Combat | Échange |
 |---|---|---|
 | Localisation | Cable Club | Cable Club |
-| Mode aléatoire | ✅ Oui | ❌ Non (ami uniquement) |
+| Mode aléatoire | ✅ Oui | ❌ Non |
 | Mode ami | ✅ Oui | ✅ Oui |
-| Phase 1 (actuel) | Lobby + notification | Lobby + notification |
-| Phase 2 (à venir) | Vrai combat SIO | Vrai échange SIO |
+| Connexion WebRTC | ✅ Identique | ✅ Identique |
+| Câble link SIO | ✅ Identique | ✅ Identique |
+| Différence réelle | Menu "Combat" dans le jeu | Menu "Échange" dans le jeu |
 
-Les échanges aléatoires ne sont pas prévus : un échange Pokémon nécessite un accord sur ce qu'on donne et ce qu'on reçoit — ça ne se fait pas avec un inconnu au hasard.
-
----
-
-## Compatibilité entre langues de ROM
-
-Un échange entre un joueur avec une ROM française et un joueur avec une ROM anglaise fonctionne. Le câble link SIO est un protocole hardware GBA, indépendant de la langue.
-
-Ce qui doit correspondre : la **génération** de la ROM. Fire Red et Leaf Green sont compatibles entre eux. Fire Red n'est pas compatible avec Emerald ou d'autres générations.
-
-En Phase 2, Valdoria lira le code de ROM de chaque joueur (`cart.code`, déjà disponible dans `position.js`) et vérifiera la compatibilité avant d'établir la connexion SIO.
+Les deux modes utilisent exactement la même infrastructure. C'est le joueur qui choisit dans les menus natifs de Fire Red après que le câble est branché.
 
 ---
 
 ## Architecture technique
 
-### Phase 1 — Lobby Firebase (actuel)
+L'échange utilise la même pile que le combat, avec `type: "echange"` dans le document Firebase pour adapter les textes de l'interface.
 
-Le type de session (`"combat"` ou `"echange"`) est inclus dans le document Firebase du défi :
+**Protocole SIO**
+
+Le câble link GBA transporte les données d'échange exactement comme pour les combats. Fire Red gère lui-même la sérialisation des données Pokémon échangées via le port SIO.
 
 ```
-monde/defis/<id_cible>/
-  de    : id de l'expéditeur
-  pseudo: nom du dresseur
-  tag   : Nom#1234
-  type  : "combat" | "echange"
-  ts    : timestamp
-  accepte?: true  (ajouté par le receveur s'il accepte)
+monde/
+  defis/<id>      — { type: "echange", sid, de, pseudo, tag, ts }
+  sessions/<sid>/ — signaling WebRTC (offer/answer/ICE)
 ```
 
-Le module `assets/js/linkroom.js` lit ce champ pour adapter les textes affichés ("te défie en combat !" vs "veut échanger des Pokémon avec toi !").
+**Fichiers concernés**
 
-### Phase 2 — Câble link SIO (à venir)
-
-Même infrastructure que pour les combats. La ROM sait distinguer "combat" et "échange" dans ses propres menus — Valdoria n'a qu'à établir le câble link. C'est le joueur qui choisit dans les menus natifs du jeu.
-
-Le branchement Phase 2 se fait dans `linkroom.js` à la ligne commentée :
-```javascript
-// Phase 2 : lancer la session SIO ici
-```
+| Fichier | Rôle |
+|---|---|
+| `js/sio.js` | Port SIO GBA Normal 32-bit |
+| `assets/js/siolink.js` | Câble link WebRTC (partagé combat/échange) |
+| `assets/js/linkroom.js` | Lobby, bouton Échange, lancement siolink |
 
 ---
 
-## Configuration de la map
+## Compatibilité ROM
 
-Si le lobby ne s'ouvre pas automatiquement quand tu entres dans le Cable Club :
+- **FR + EN** → ✅ les échanges fonctionnent entre langues
+- **Fire Red + Leaf Green** → ✅ compatible
+- **Fire Red + Emerald** → ❌ incompatible (protocoles SIO différents)
 
-1. Lance le jeu
-2. Entre dans le Cable Club (2ème étage d'un Centre Pokémon)
-3. Ouvre **PokéKanto** → section **⚔️ Cable Club**
-4. Clique **📍 Enregistrer cette map**
+---
 
-La map est sauvegardée dans ton navigateur et utilisée pour toutes les sessions suivantes.
+## Débogage
+
+Ouvrir la console du navigateur (`F12`). Les logs `[siolink]` montrent chaque paquet SIO échangé :
+
+```
+[siolink] Rôle : maître (initiateur WebRTC)
+[siolink] Offre envoyée
+[siolink] Réponse reçue
+[siolink] DataChannel ouvert
+[siolink] linkLayer attaché au SIO
+[siolink] SIO TX → 0000000
+[siolink] SIO RX ← ffff0000
+```
+
+Si le jeu ne propose pas les menus d'échange, vérifier que les deux navigateurs affichent bien "DataChannel ouvert" et que les paquets SIO s'échangent.

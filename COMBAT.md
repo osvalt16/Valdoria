@@ -1,92 +1,122 @@
 # Système de combat — Valdoria
 
-## État actuel (Phase 1)
+## État actuel
 
-Le système de combat est en place côté lobby et matchmaking. Les joueurs peuvent se retrouver dans le **Cable Club** et s'envoyer des défis. Le combat réel dans la ROM n'est pas encore déclenché (Phase 2).
+Le système de combat est opérationnel côté infrastructure. Le lobby, le matchmaking, la connexion WebRTC et le câble link SIO sont implémentés. La validité du handshake Fire Red doit encore être confirmée par des tests en conditions réelles.
 
 ---
 
-## Comment ça fonctionne
+## Comment faire un combat
 
-### 1. Configurer la map du Cable Club
-
-La première fois, il faut apprendre au jeu quelle map correspond au Cable Club :
+### 1. Configurer la map du Cable Club (première fois)
 
 1. Lance une ROM Pokémon Rouge Feu
 2. Va dans un Centre Pokémon → entre dans le Cable Club (2ème étage)
 3. Ouvre le menu **PokéKanto** → section **⚔️ Cable Club**
 4. Clique **📍 Enregistrer cette map**
 
-Cette map est sauvegardée dans ton navigateur. Le lobby s'ouvrira automatiquement à chaque fois que tu entreras dans cette pièce.
+La map est sauvegardée dans ton navigateur. Le lobby s'ouvre automatiquement à chaque entrée.
 
-### 2. Lancer une recherche de combat
+### 2. Trouver un adversaire
 
-Quand tu entres dans le Cable Club, une fenêtre s'ouvre avec deux options :
+Quand tu entres dans le Cable Club, le lobby s'ouvre avec trois options :
 
-- **Combat aléatoire** — se connecte au premier joueur disponible dans la salle sur le serveur partagé
-- **Défier un ami** — affiche la liste de tes amis (tag `Nom#1234`) qui sont dans la salle en ce moment
+- **⚔️ Combat aléatoire** — premier joueur disponible dans la salle
+- **⚔️ Défier un ami ▾** — liste de tes amis (tag `Nom#1234`) présents dans la salle
 
-### 3. Recevoir un défi
+### 3. Établir la connexion
 
-Quand quelqu'un te défie, une notification apparaît :
+Quand l'adversaire accepte le défi :
 
-> **NomDresseur te défie !**  
-> ✅ Accepter · ❌ Refuser
+1. L'UI affiche **"⏳ Établissement du câble link…"**
+2. Puis **"🔗 Câble branché ! Parle au PNJ pour commencer le combat."**
 
-Si tu acceptes, les deux joueurs reçoivent une confirmation de connexion.
+### 4. Lancer le combat dans le jeu
+
+Une fois le câble branché, les deux joueurs parlent au PNJ du Cable Club dans le jeu. La ROM gère le combat via ses menus natifs — Valdoria se contente de faire transiter les données.
 
 ---
 
 ## Architecture technique
 
-### Phase 1 — Lobby Firebase (actuel)
+### Infrastructure complète (implémentée)
 
-- Chaque joueur qui entre dans le Cable Club écrit sa présence dans `monde/linkroom/<id>` sur Firebase
-- Les défis transitent par `monde/defis/<id_cible>`
-- La détection de map se fait via les coordonnées `g` (bank) et `m` (numéro de map) lues en RAM par `position.js`
-- Le tag `Nom#1234` est partagé entre le tchat et le système de combat pour identifier les amis
+**Lobby — Firebase Realtime Database**
 
 ```
-Firebase Realtime Database
-└── monde/
-    ├── joueurs/        — positions de tous les joueurs connectés
-    ├── linkroom/       — joueurs présents dans le Cable Club
-    │   └── <id>/       — { pseudo, tag, ts }
-    └── defis/
-        └── <id_cible>/ — { de, pseudo, tag, ts, accepte? }
+monde/
+  linkroom/<id>   — joueurs présents dans le Cable Club { pseudo, tag, ts }
+  defis/<id>      — défis entrants { de, pseudo, tag, type, sid, ts, accepte? }
+  sessions/<sid>/ — signaling WebRTC
+    offer         — SDP offre (maître)
+    answer        — SDP réponse (esclave)
+    ice_master/   — candidats ICE du maître
+    ice_slave/    — candidats ICE de l'esclave
 ```
 
-### Phase 2 — Câble link SIO via WebRTC (à venir)
+**Câble link — WebRTC DataChannel (`assets/js/siolink.js`)**
 
-Pour de vrais combats Pokémon, la ROM a besoin de croire qu'un câble link GBA est branché. Le plan :
+- Connexion peer-to-peer via `RTCPeerConnection` (STUN Google)
+- Signaling échangé via Firebase (pas de serveur supplémentaire)
+- `RTCDataChannel` ordonné et fiable pour les données SIO
+- Timeout de connexion : 30 secondes
 
-1. **Implémenter le port SIO dans `js/sio.js`** — les registres SIOCNT, SIODATA, le mode Normal 32-bit utilisé par Fire Red pour les combats/échanges.
-2. **Transport WebRTC** — un canal de données RTCDataChannel relie les deux navigateurs via les serveurs STUN publics (pas de serveur à héberger).
-3. **Synchronisation lockstep** — les deux émulateurs avancent frame par frame ensemble. À chaque échange SIO, les données transitent via WebRTC. Si un paquet est en retard, on attend (pas de prédiction possible en Pokémon).
-4. **Branchement** — quand Phase 2 est prête, elle se branche dans `linkroom.js` à l'endroit marqué `// Phase 2 : lancer la session SIO ici`.
+**SIO Normal 32-bit — GBA (`js/sio.js`)**
 
-### Pourquoi le Centre Pokémon 2ème étage ?
+- `writeSIOCNT` : détecte le démarrage d'un transfert (bit 7), lit `SIODATA32`, délègue à `siolink`
+- `readSIOCNT` : reflète le bit busy pendant l'attente des données du pair
+- `completeNormal32Transfer(remoteData)` : appelé par `siolink` quand les données arrivent, écrit dans les registres IO et déclenche `IRQ_SIO`
+- `readTxData32()` : utilisé par l'esclave pour lire ses données TX sans démarrer de transfert
 
-Dans Pokémon Rouge Feu, c'est l'emplacement natif du Cable Club — la salle où les ROM gèrent déjà les combats et échanges via câble link. En entrant dans cette pièce et en initiant un combat, la ROM suit son chemin de code normal : elle ouvre les menus de combat/échange natifs et pilote le port SIO. On n'a pas à réécrire la logique de jeu.
+**Protocole d'échange SIO entre les deux navigateurs**
 
----
+```
+Maître (isMaster=true)          Esclave (isMaster=false)
+        |                               |
+writeSIOCNT(start=1)                    |
+        |---{ t:"sio", d:masterTx }--→ |
+        |                     completeNormal32Transfer(masterTx)
+        |                     channel.send({ t:"sio_ack", d:slaveTx })
+        | ←--{ t:"sio_ack", d:slaveTx }|
+completeNormal32Transfer(slaveTx)       |
+```
 
-## Fichiers concernés
+**Rôles maître/esclave**
+
+- **Maître** : joueur qui a envoyé le défi (drive l'horloge SIO, SIOCNT bit 0 = 1)
+- **Esclave** : joueur qui a accepté (horloge externe, SIOCNT bit 0 = 0)
+- Le maître crée l'offre WebRTC, l'esclave répond
+
+### Fichiers concernés
 
 | Fichier | Rôle |
 |---|---|
-| `assets/js/linkroom.js` | Détection de map, présence Firebase, envoi/réception de défis, UI du lobby |
-| `assets/js/network.js` | Broadcast du tag dans Firebase, lecture du tag des autres joueurs |
+| `js/sio.js` | Port SIO GBA — Normal 32-bit implémenté |
+| `assets/js/siolink.js` | Câble link WebRTC + signaling Firebase |
+| `assets/js/linkroom.js` | Lobby, matchmaking, lancement de siolink |
+| `assets/js/network.js` | Broadcast du tag, lecture du tag des autres joueurs |
 | `assets/js/tchat.js` | Fournit le tag `Nom#1234` au module linkroom |
-| `assets/js/app.js` | Appelle `linkroom.check(pos)` dans la boucle de jeu (toutes les 125 ms) |
-| `assets/js/position.js` | Lit les coordonnées `g` et `m` de la map courante depuis la RAM GBA |
-| `js/sio.js` | Port SIO gbajs2 — à implémenter pour la Phase 2 |
+| `assets/js/app.js` | Appelle `linkroom.check(pos)` toutes les 125 ms |
+| `assets/js/position.js` | Lit les coordonnées de map `g` et `m` depuis la RAM GBA |
 
 ---
 
-## Limitations connues (Phase 1)
+## Compatibilité ROM
 
-- Le lobby fonctionne mais aucun combat réel n'est déclenché dans la ROM
-- La map du Cable Club doit être configurée manuellement la première fois
-- Si les deux joueurs ne sont pas sur la même version de ROM, le câble link ne fonctionnera pas (Phase 2)
-- Un seul défi à la fois par joueur
+- **FR + EN** → ✅ compatible (même génération, même structure SIO)
+- **FR + hack basé sur FR** → ✅ en général
+- **Fire Red + Emerald** → ❌ protocoles SIO incompatibles
+
+En Phase future : vérification automatique du code ROM (`cart.code`) avant connexion.
+
+---
+
+## Débogage
+
+Ouvrir la console du navigateur (`F12`). Les logs `[siolink]` indiquent :
+- `Rôle : maître / esclave`
+- `Offre envoyée / Réponse reçue`
+- `DataChannel ouvert`
+- `SIO TX → <hex>` / `SIO RX ← <hex>`
+
+Si le jeu ne propose pas les menus après "Câble branché", vérifier les échanges SIO dans la console pour identifier où le handshake Fire Red diverge.
