@@ -222,5 +222,20 @@
       const champ = $("tchatInput");
       const texte = champ.value.trim().slice(0, 120);
       const now = Date.now();
-      if (!texte || now - dernierEnvoi < 1000) return;     // anti-spam simple
-      if (!monTag) re
+      if (!monTag) return;            // pas de partie chargée = pas de tchat
+      dernierEnvoi = now;
+      const ref = canal === "general"
+        ? db.ref("monde/tchat")
+        : db.ref("monde/tchatAmis/" + cle(monTag));
+      ref.push({
+        nom: pseudoFn(), texte: texte, tag: monTag || null,
+        t: firebase.database.ServerValue.TIMESTAMP
+      });
+      champ.value = "";
+    });
+
+    rend();
+  }
+
+  window.Valdoria.tchat = { connect, definitNom, getTag: () => monTag };
+})(window);
