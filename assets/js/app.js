@@ -50,6 +50,16 @@
   $("saveBtn").addEventListener("click", emulator.downloadSave);
   $("debugToggle").addEventListener("click", debug.toggleDebugPanel);
 
+  // boutons actions dans drawer mobile
+  const soundMobile = $("soundBtnMobile");
+  const saveMobile = $("saveBtnMobile");
+  const playSavMobile = $("playSavInputMobile");
+  if (soundMobile) soundMobile.addEventListener("click", emulator.toggleSound);
+  if (saveMobile) saveMobile.addEventListener("click", emulator.downloadSave);
+  if (playSavMobile) playSavMobile.addEventListener("change", e => {
+    emulator.loadSaveFile(e.target.files[0] || null, { restart: true });
+  });
+
   // legende des boutons (bas droite)
   $("legendeToggle").addEventListener("click", e => {
     e.stopPropagation();
