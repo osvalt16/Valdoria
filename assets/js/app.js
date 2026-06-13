@@ -55,4 +55,35 @@
   if (drawerSoundBtn) drawerSoundBtn.addEventListener("click", emulator.toggleSound);
 
   const drawerImportBtn = $("drawerImportBtn");
-  if (drawerImportBtn) drawerImportBtn.addEventListener("click", () => $("playSavInput").cli
+  if (drawerImportBtn) drawerImportBtn.addEventListener("click", () => $("playSavInput").click());
+
+  const drawerSaveBtn = $("drawerSaveBtn");
+  if (drawerSaveBtn) {
+    drawerSaveBtn.addEventListener("click", emulator.downloadSave);
+    // Sync état disabled depuis #saveBtn
+    const origSave = $("saveBtn");
+    if (origSave) new MutationObserver(() => {
+      drawerSaveBtn.disabled = origSave.disabled;
+    }).observe(origSave, { attributes: true, attributeFilter: ["disabled"] });
+  }
+
+  // Sync visibilité bouton map Cable Club
+  const drawerMapBtn = $("drawerLinkroomBtn2");
+  const origMapBtn = $("linkroomBtnSaveMap2");
+  if (drawerMapBtn && origMapBtn) {
+    drawerMapBtn.addEventListener("click", () => { if (!origMapBtn.hidden) origMapBtn.click(); });
+    new MutationObserver(() => {
+      origMapBtn.hidden
+        ? drawerMapBtn.setAttribute("hidden", "")
+        : drawerMapBtn.removeAttribute("hidden");
+    }).observe(origMapBtn, { attributes: true, attributeFilter: ["hidden"] });
+  }
+
+  // légende des boutons (bas droite)
+  $("legendeToggle").addEventListener("click", e => {
+    e.stopPropagation();
+    const p = $("legendePanel");
+    p.hidden ? p.removeAttribute("hidden") : p.setAttribute("hidden", "");
+  });
+  document.addEventListener("click", () => $("legendePanel").setAttribute("hidden", ""));
+})(window);
