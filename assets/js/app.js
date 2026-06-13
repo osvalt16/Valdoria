@@ -48,7 +48,8 @@
 
   $("soundBtn").addEventListener("click", emulator.toggleSound);
   $("saveBtn").addEventListener("click", emulator.downloadSave);
-  $("debugToggle").addEventListener("click", debug.toggleDebugPanel);
+  const debugToggle = $("debugToggle");
+  if (debugToggle) debugToggle.addEventListener("click", debug.toggleDebugPanel);
 
   // Drawer mobile — délégation vers les mêmes handlers
   const drawerSoundBtn = $("drawerSoundBtn");
