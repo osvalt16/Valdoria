@@ -47,7 +47,6 @@
   });
 
   $("soundBtn").addEventListener("click", emulator.toggleSound);
-  $("pauseBtn").addEventListener("click", emulator.togglePause);
   $("saveBtn").addEventListener("click", emulator.downloadSave);
   $("debugToggle").addEventListener("click", debug.toggleDebugPanel);
 })(window);
