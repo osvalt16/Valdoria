@@ -349,13 +349,6 @@
 
     readFileAsArrayBuffer(romFile).then(async romBuffer => {
       if (state.pendingSaveRead) await state.pendingSaveRead;
-      // Patch du sprite joueur si un personnage est choisi
-      if (window.Valdoria.romPatch && state.mySprite) {
-        try {
-          setStatus("Personnalisation du personnage…");
-          romBuffer = await window.Valdoria.romPatch.patchPlayer(romBuffer, state.mySprite);
-        } catch (e) { console.warn('[rom-patch]', e); }
-      }
       state.romBuffer = romBuffer;
       const ok = gba.setRom(romBuffer);
       if (!ok) { setStatus("Impossible de lire cette ROM."); return; }

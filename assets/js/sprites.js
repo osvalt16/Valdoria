@@ -8,9 +8,10 @@
   const CYCLE  = [0, 1, 2, 1];
   const TILE   = 32;
 
-  // Cache d'images indexe par src (chargement a la demande)
-  const imageCache = {};
+  const SRC_HOMME = "assets/img/homme10.png";
+  const SRC_FILLE = "assets/img/fille8.png";
 
+  const imageCache = {};
   function getImage(src) {
     if (!imageCache[src]) {
       const im = new Image();
@@ -20,45 +21,32 @@
     return imageCache[src];
   }
 
-  // Trouve le src du sprite pour un joueur distant.
-  // Priorite : sprite explicitement choisi > genre > defaut garcon.
   function srcFor(friend) {
-    const config = window.Valdoria.spritesConfig || [];
-    if (friend.sprite) {
-      const perso = config.find(p => p.id === friend.sprite);
-      if (perso) return perso.src;
-    }
-    if (friend.sexe === 1) {
-      const fille = config.find(p => p.id === "fille1");
-      if (fille) return fille.src;
-      return "assets/img/Fille1.png";
-    }
-    const homme = config.find(p => p.id === "homme1");
-    if (homme) return homme.src;
-    return "assets/img/homme1.png";
-  }
-
-  function drawFallback(ctx, x, y) {
-    ctx.fillStyle = "rgba(60,120,255,0.75)";
-    ctx.beginPath();
-    ctx.roundRect(x + 6, y - 6, 20, 34, 8);
-    ctx.fill();
+    return friend.sexe === 1 ? SRC_FILLE : SRC_HOMME;
   }
 
   function draw(ctx, x, y, friend) {
     const im = getImage(srcFor(friend));
-    if (!im.complete || !im.naturalWidth) { drawFallback(ctx, x, y); return; }
 
-    const moving = Date.now() < friend.movingUntil;
-    const frame  = moving ? CYCLE[Math.floor(Date.now() / 100) % CYCLE.length] : 1;
-    const row    = ROWS[friend.direction] !== undefined ? ROWS[friend.direction] : 0;
-
+    // Ombre au sol
     ctx.fillStyle = "rgba(0,0,0,0.35)";
     ctx.beginPath();
     ctx.ellipse(x + TILE / 2, y + TILE - 3, 10, 3, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Taille de cellule dynamique : image divisee en 3 cols x 4 lignes
+    if (!im.complete || !im.naturalWidth) {
+      // Fallback fantome colore
+      ctx.fillStyle = friend.sexe === 1 ? "rgba(255,100,180,0.8)" : "rgba(60,120,255,0.8)";
+      ctx.beginPath();
+      ctx.roundRect(x + 6, y - 6, 20, 34, 8);
+      ctx.fill();
+      return;
+    }
+
+    const moving = Date.now() < friend.movingUntil;
+    const frame  = moving ? CYCLE[Math.floor(Date.now() / 100) % CYCLE.length] : 1;
+    const row    = ROWS[friend.direction] !== undefined ? ROWS[friend.direction] : 0;
+
     const cw = im.naturalWidth  / 3;
     const ch = im.naturalHeight / 4;
     const dx = x + TILE / 2 - DRAW_W / 2;
