@@ -101,7 +101,7 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
 .tag-puce button { border:none; background:none; color:var(--rouge2); cursor:pointer; font-size:.74rem; padding:0; }
 .tchat-info { margin:4px 0 8px; font-size:.78rem; color:#6e6890; }
 #tchatInput:disabled { opacity:.5; }
-#tchatMessages { height:200px; overflow-y:auto; text-align:left; font-size:.85rem;
+#tchatMessages { height:320px; overflow-y:auto; text-align:left; font-size:.85rem;
   color:var(--texte-sombre); padding:4px 6px; }
 .tchat-ligne { margin:2px 0; overflow-wrap:break-word; }
 .tchat-ligne strong { color:#1d3fa8; }          /* joueurs : bleu foncé */
@@ -246,8 +246,8 @@ body.is-playing main {
 body.is-playing #play {
   flex:1; min-height:0; display:flex; flex-direction:column; gap:8px; overflow:hidden; }
 body.is-playing .mobile-hud { display:flex; }
-body.is-playing #screenZone { flex:0 0 auto; max-height:42vh; }
-body.is-playing #screenZone #screenWrap { max-height:42vh; }
+body.is-playing #screenZone { flex:0 0 auto; max-height:34vh; }
+body.is-playing #screenZone #screenWrap { max-height:34vh; }
 body.is-playing #friendInfo { flex:0 0 auto; margin:0; font-size:.82rem; min-height:1em; }
 body.is-playing #tchat {
   flex:1; min-height:0; margin:0;
