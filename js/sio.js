@@ -60,15 +60,13 @@ class GameBoyAdvanceSIO {
 			case this.SIO_NORMAL_32: {
 				// SIOCNT Normal 32-bit :
 				// bit 0  : clock source (0 = externe/esclave, 1 = interne/maître)
-				// bit 1  : vitesse horloge interne (0 = 256 kHz, 1 = 2 MHz)
 				// bit 7  : start/busy (1 = lancer le transfert)
-				// bit 12 : longueur (0 = 8-bit, 1 = 32-bit) — forcé à 1 ici
+				// bit 12 : longueur forcée à 1 (32-bit)
 				// bit 14 : IRQ enable
 				this.normal32.clockInternal = !!(value & 0x0001);
 				this.normal32.irq = !!(value & 0x4000);
 
 				if ((value & 0x0080) && !this.normal32.busy) {
-					// Lire les données TX depuis les registres IO
 					const regs = this.core.io.registers;
 					const lo = regs[this.core.io.SIODATA32_LO >> 1] & 0xFFFF;
 					const hi = regs[this.core.io.SIODATA32_HI >> 1] & 0xFFFF;
@@ -76,11 +74,9 @@ class GameBoyAdvanceSIO {
 					this.normal32.busy = true;
 
 					if (this.linkLayer) {
-						// Déléguer au câble link (siolink.js)
 						this.linkLayer.startNormal32Transfer(this.normal32.tx);
 					} else {
 						// Pas de câble : répondre immédiatement avec 0xFFFFFFFF
-						// (comportement "aucun autre joueur détecté")
 						setTimeout(() => this.completeNormal32Transfer(0xFFFFFFFF), 0);
 					}
 				}
@@ -102,3 +98,88 @@ class GameBoyAdvanceSIO {
 				this.irq = value & 0x4000;
 				break;
 
+			case this.SIO_UART:
+				this.core.STUB("UART unsupported");
+				break;
+			case this.SIO_GPIO:
+				// This register isn't used in general-purpose mode
+				break;
+			case this.SIO_JOYBUS:
+				this.core.STUB("JOY BUS unsupported");
+				break;
+		}
+	}
+	readSIOCNT() {
+		var value = (this.mode << 12) & 0xffff;
+		switch (this.mode) {
+			case this.SIO_NORMAL_8:
+				this.core.STUB("8-bit transfer unsupported");
+				break;
+
+			case this.SIO_NORMAL_32:
+				value |= 0x1000;  // bit 12 = 32-bit
+				if (this.normal32.clockInternal) value |= 0x0001;
+				if (this.normal32.busy)          value |= 0x0080;
+				if (this.normal32.irq)           value |= 0x4000;
+				break;
+
+			case this.SIO_MULTI:
+				value |= this.multiplayer.baud;
+				value |= this.multiplayer.si;
+				value |= !!this.sd << 3;
+				value |= this.multiplayer.id << 4;
+				value |= this.multiplayer.error;
+				value |= this.multiplayer.busy;
+				value |= !!this.multiplayer.irq << 14;
+				break;
+			case this.SIO_UART:
+				this.core.STUB("UART unsupported");
+				break;
+			case this.SIO_GPIO:
+				break;
+			case this.SIO_JOYBUS:
+				this.core.STUB("JOY BUS unsupported");
+				break;
+		}
+		return value;
+	}
+	read(slot) {
+		switch (this.mode) {
+			case this.SIO_NORMAL_32:
+				if (slot === 0) return this.normal32.rx & 0xFFFF;
+				if (slot === 1) return (this.normal32.rx >>> 16) & 0xFFFF;
+				return 0;
+			case this.SIO_MULTI:
+				return this.multiplayer.states[slot];
+			case this.SIO_UART:
+				this.core.STUB("UART unsupported");
+				break;
+			default:
+				this.core.WARN("Reading from transfer register in unsupported mode");
+				break;
+		}
+		return 0;
+	}
+
+	// Appelé par siolink.js quand les données du pair arrivent via WebRTC.
+	completeNormal32Transfer(remoteData32) {
+		this.normal32.rx = remoteData32 >>> 0;
+		this.normal32.busy = false;
+
+		const regs = this.core.io.registers;
+		regs[this.core.io.SIODATA32_LO >> 1] = remoteData32 & 0xFFFF;
+		regs[this.core.io.SIODATA32_HI >> 1] = (remoteData32 >>> 16) & 0xFFFF;
+
+		if (this.normal32.irq) {
+			this.core.irq.raiseIRQ(this.core.irq.IRQ_SIO);
+		}
+	}
+
+	// Appelé par siolink.js côté esclave : lire TX sans démarrer de transfert.
+	readTxData32() {
+		const regs = this.core.io.registers;
+		const lo = regs[this.core.io.SIODATA32_LO >> 1] & 0xFFFF;
+		const hi = regs[this.core.io.SIODATA32_HI >> 1] & 0xFFFF;
+		return ((hi << 16) | lo) >>> 0;
+	}
+}
