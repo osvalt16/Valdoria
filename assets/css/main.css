@@ -477,3 +477,26 @@ main { max-width:840px; margin:0 auto; padding:12px 16px 32px; }
   .system-row .touch-btn.system[data-gba-key="START"] { left:50%; transform:translateX(8%); }
   .system-row .led2 { display:none; }
 }
+
+/* ---------- sélecteur de personnage ---------- */
+.perso-section { margin-top:22px; }
+.perso-titre { font-size:.75rem; color:var(--muted); margin:0 0 10px; text-transform:uppercase; letter-spacing:1px; }
+.perso-grille {
+  display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
+}
+.perso-carte {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:rgba(255,255,255,.06); border:2px solid transparent;
+  border-radius:10px; padding:8px 10px; cursor:pointer;
+  transition:border-color .15s, background .15s;
+}
+.perso-carte:hover { background:rgba(255,255,255,.12); }
+.perso-carte.selectionne {
+  border-color:var(--or);
+  background:rgba(255,203,5,.12);
+}
+.perso-carte canvas { image-rendering:pixelated; }
+.perso-label {
+  font-size:.65rem; color:var(--texte); text-align:center;
+  font-family:"Press Start 2P", monospace;
+}

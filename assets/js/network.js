@@ -58,6 +58,7 @@
     j.lastTx = j.tx; j.lastTy = j.ty;
     j.g = d.g; j.m = d.m; j.tx = d.x; j.ty = d.y;
     j.sexe = d.sexe === 0 || d.sexe === 1 ? d.sexe : null;
+    j.sprite = d.sprite || null;
     j.tag = d.tag || null;
     j.t = d.t || Date.now();
     if (d.x !== prevX || d.y !== prevY) {
@@ -135,9 +136,7 @@
       tag: window.Valdoria.tchat ? window.Valdoria.tchat.getTag() : null,
       x: pos.x, y: pos.y, g: pos.g, m: pos.m,
       sexe: pos.sexe === 0 || pos.sexe === 1 ? pos.sexe : null,
+      sprite: state.mySprite || null,
       t: firebase.database.ServerValue.TIMESTAMP
     });
-  }
-
-  window.Valdoria.network = { connectWorld, sendPos };
-})(window);
+ 
