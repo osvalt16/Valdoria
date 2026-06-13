@@ -426,20 +426,21 @@ body.is-playing .mobile-drawer-head { display:flex; }
     flex-direction:column;
     height:100%;
     min-height:0;
+    gap:4px;
   }
   body.is-playing #screenWrap {
     flex:0 0 auto;
     width:100%;
-    max-height:calc(100dvh - 370px);
+    max-height:min(calc(100dvh - 460px), 36dvh);
     border-width:8px;
     border-radius:12px;
   }
   body.is-playing #screenZone { flex-direction:column; }
   body.is-playing #screenSidebar { display:none; }
   body.is-playing #friendInfo {
-    min-height:1.1em;
-    margin:4px 0;
-    font-size:.78rem;
+    min-height:0;
+    margin:2px 0;
+    font-size:.72rem;
   }
   #raccourcisBtn, #raccourcisPanel { display:none !important; }
 
@@ -448,12 +449,13 @@ body.is-playing .mobile-drawer-head { display:flex; }
     display:flex;
     flex-direction:column;
     flex:1 1 auto;
-    min-height:96px;
-    margin:4px 0 12px;   /* espace tampon au-dessus du pad : moins de faux appuis */
-    padding:6px;
+    min-height:72px;
+    max-height:120px;
+    margin:4px 0 6px;
+    padding:4px 6px;
     border-width:2px;
   }
-  body.is-playing #tchatMessages { flex:1; height:auto; min-height:48px; font-size:.75rem; }
+  body.is-playing #tchatMessages { flex:1; height:auto; min-height:32px; font-size:.72rem; }
 
   .mobile-hud {
     display:flex;
@@ -529,7 +531,7 @@ body.is-playing .mobile-drawer-head { display:flex; }
   .mobile-controls {
     display:block;
     margin-top:auto;
-    margin-bottom:14px;        /* remonte la coque du bas de l'ecran */
+    margin-bottom:6px;         /* remonte la coque du bas de l'ecran */
     user-select:none;
     -webkit-user-select:none;
     touch-action:none;
