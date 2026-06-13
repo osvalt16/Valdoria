@@ -101,6 +101,10 @@
   function rend() {
     $("tchatOngletGeneral").classList.toggle("actif", canal === "general");
     $("tchatOngletAmis").classList.toggle("actif", canal === "amis");
+    const mg = $("tchatOngletGeneralMobile");
+    const ma = $("tchatOngletAmisMobile");
+    if (mg) mg.classList.toggle("actif", canal === "general");
+    if (ma) ma.classList.toggle("actif", canal === "amis");
 
     // panneau options : mon tag + bouton copier
     const info = $("tchatCodeInfo");
@@ -214,6 +218,10 @@
     isoleClavier($("tagAmiInput"));
     $("tchatOngletGeneral").addEventListener("click", () => { canal = "general"; rend(); });
     $("tchatOngletAmis").addEventListener("click", () => { canal = "amis"; rend(); });
+    const mg2 = $("tchatOngletGeneralMobile");
+    const ma2 = $("tchatOngletAmisMobile");
+    if (mg2) mg2.addEventListener("click", () => { canal = "general"; rend(); });
+    if (ma2) ma2.addEventListener("click", () => { canal = "amis"; rend(); });
     $("tagAmiAjouter").addEventListener("click", ajouteAmi);
     $("tagAmiInput").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); ajouteAmi(); } });
 

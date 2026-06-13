@@ -615,4 +615,36 @@ body.is-playing #legendeZone {
   box-shadow:0 2px 8px rgba(0,0,0,.4);
   transition:background .12s, color .12s;
 }
-#legendeToggle:ho
+#legendeToggle:hover { background:rgba(50,30,70,.9); color:#fff; }
+#legendePanel {
+  position:absolute; right:0; bottom:36px;
+  background:rgba(23,16,34,.92); border:1px solid rgba(255,255,255,.12);
+  border-radius:10px; padding:10px 13px; min-width:210px;
+  box-shadow:0 8px 24px rgba(0,0,0,.5); backdrop-filter:blur(4px);
+}
+#legendePanel[hidden] { display:none; }
+#legendePanel ul { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:7px; }
+#legendePanel li { display:flex; align-items:center; gap:9px; font-size:.78rem; color:rgba(255,255,255,.8); }
+#legendePanel li span { font-size:1rem; flex-shrink:0; }
+
+/* ---------- onglets tchat dans drawer mobile ---------- */
+.mobile-onglets-panel { display:none; padding:10px 12px; margin-top:0; }
+.tchat-onglets-mobile {
+  display:flex; flex-direction:row; gap:8px;
+}
+.tchat-onglets-mobile button {
+  flex:1; padding:10px 8px; border-radius:10px;
+  border:2px solid var(--bordure); background:#e7e2f2; color:var(--texte-sombre);
+  font-size:.85rem; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  transition:background .12s;
+}
+.tchat-onglets-mobile button.actif {
+  background:linear-gradient(180deg,#3c78ff,#2255cc); color:#fff;
+  border-color:#163a8e; box-shadow:0 2px 0 #163a8e;
+}
+
+@media (max-width: 820px), (max-height: 520px), (pointer: coarse) {
+  #tchat .tchat-onglets { display:none; }
+  .mobile-onglets-panel { display:block; }
+}
