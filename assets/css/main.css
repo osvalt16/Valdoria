@@ -626,6 +626,15 @@ body.is-playing .mobile-drawer-head { display:flex; }
   }
   body.is-playing .fullscreen-btn:active { transform:scale(.94); }
   .fullscreen-btn[hidden] { display:none !important; }
+  /* légende : bas gauche sur mobile pour éviter overlap avec plein écran */
+  body.is-playing #legendeZone {
+    right:auto;
+    left:14px;
+  }
+  #legendePanel {
+    right:auto;
+    left:0;
+  }
 }
 
 /* ----- paysage : contrôles flottants translucides ----- */
