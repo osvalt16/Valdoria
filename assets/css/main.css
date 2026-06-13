@@ -311,13 +311,13 @@ body.is-playing main {
 body.is-playing #play {
   flex:1; min-height:0; display:flex; flex-direction:column; gap:8px; overflow:hidden; }
 body.is-playing .mobile-hud { display:flex; }
-body.is-playing #screenZone { flex:0 0 auto; max-height:34vh; }
-body.is-playing #screenZone #screenWrap { max-height:34vh; }
+body.is-playing #screenZone { flex:0 0 55vh; }
+body.is-playing #screenZone #screenWrap { max-height:55vh; }
 body.is-playing #friendInfo { flex:0 0 auto; margin:0; font-size:.82rem; min-height:1em; }
 body.is-playing #tchat {
   flex:1; min-height:0; margin:0;
   display:flex; flex-direction:column; gap:4px; padding:6px 8px; }
-body.is-playing #tchatMessages { flex:1; height:auto; min-height:80px; }
+body.is-playing #tchatMessages { flex:1; height:auto; min-height:120px; }
 body.is-playing .mobile-backdrop.open {
   display:block; position:fixed; inset:0; z-index:20; background:rgba(10,6,18,.6); }
 body.is-playing .valdoria-options {
