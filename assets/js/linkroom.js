@@ -18,6 +18,7 @@
   let defiRef  = null;    // monde/defis/<monId>  (défis reçus)
   let defiRecu = null;    // données du défi en attente
   let dansLinkRoom = false;
+  let modeDefi = "combat";   // "combat" ou "echange" selon le bouton cliqué
 
   /* ---- Map Cable Club ------------------------------------------ */
   function chargeMap() {
@@ -96,28 +97,31 @@
       const candidats = Object.entries(salle)
         .filter(([id]) => id !== monId)
         .filter(([, d]) => Date.now() - (d.ts || 0) < DUREE_PRESENCE_MS);
-      if (!candidats.length) { afficherAttente(null); return; }
+      if (!candidats.length) { afficherAttente(null, "combat"); return; }
       const [cibleId, cibleD] = candidats[Math.floor(Math.random() * candidats.length)];
-      envoyerDefi(cibleId, cibleD.pseudo || "Dresseur");
+      envoyerDefi(cibleId, cibleD.pseudo || "Dresseur", "combat");
     });
   }
 
-  function envoyerDefi(cibleId, ciblePseudo) {
+  function envoyerDefi(cibleId, ciblePseudo, type) {
     if (!db || !monId) return;
     db.ref("monde/defis/" + cibleId).set({
       de: monId,
       pseudo: (state.myPos && state.myPos.nom) || "Dresseur",
       tag: monTag || "",
+      type: type || "combat",
       ts: firebase.database.ServerValue.TIMESTAMP
     });
-    afficherAttente(ciblePseudo);
+    afficherAttente(ciblePseudo, type || "combat");
   }
 
   function accepterDefi() {
     if (!defiRecu || !db) return;
+    const type = defiRecu.type || "combat";
     // Notifie l'adversaire (Phase 2 : lancer la session SIO ici)
     db.ref("monde/defis/" + defiRecu.de).set({
       accepte: true,
+      type,
       de: monId,
       pseudo: (state.myPos && state.myPos.nom) || "Dresseur",
       tag: monTag || "",
@@ -126,7 +130,7 @@
     if (defiRef) defiRef.remove();
     defiRecu = null;
     cacherDefi();
-    afficherPhase2();
+    afficherPhase2(type);
   }
 
   function refuserDefi() {
@@ -158,7 +162,7 @@
         tag.textContent = a.tag;
         btn.appendChild(nom);
         btn.appendChild(tag);
-        btn.addEventListener("click", () => envoyerDefi(a.id, a.pseudo));
+        btn.addEventListener("click", () => envoyerDefi(a.id, a.pseudo, modeDefi));
         listeEl.appendChild(btn);
       });
     }
@@ -183,6 +187,10 @@
   function afficherDefi(d) {
     const nom = el("linkroomDefiNom");
     if (nom) nom.textContent = d.pseudo || "Dresseur";
+    const texte = el("linkroomDefiTexte");
+    if (texte) texte.textContent = d.type === "echange"
+      ? "veut échanger des Pokémon avec toi !"
+      : "te défie en combat !";
     const panel = el("linkroomDefiPanel");
     if (panel) panel.removeAttribute("hidden");
   }
@@ -192,13 +200,15 @@
     if (panel) panel.setAttribute("hidden", "");
   }
 
-  function afficherAttente(pseudo) {
+  function afficherAttente(pseudo, type) {
     const lobby = el("linkroomLobby");
     if (lobby) lobby.setAttribute("hidden", "");
     const msg = el("linkroomAttenteMsg");
-    if (msg) msg.textContent = pseudo
-      ? "Défi envoyé à " + pseudo + "…"
-      : "En attente d'un adversaire…";
+    if (msg) {
+      if (pseudo && type === "echange") msg.textContent = "Demande d'échange envoyée à " + pseudo + "…";
+      else if (pseudo) msg.textContent = "Défi envoyé à " + pseudo + "…";
+      else msg.textContent = "En attente d'un adversaire…";
+    }
     const att = el("linkroomAttente");
     if (att) att.removeAttribute("hidden");
   }
@@ -214,17 +224,19 @@
     const lobby = el("linkroomLobby");
     if (lobby) lobby.setAttribute("hidden", "");
     const msg = el("linkroomAttenteMsg");
-    if (msg) msg.textContent = "✅ " + (d.pseudo || "Adversaire") + " a accepté ! (câble link en développement…)";
+    const action = d.type === "echange" ? "l'échange" : "le combat";
+    if (msg) msg.textContent = "✅ " + (d.pseudo || "Adversaire") + " a accepté " + action + " ! (câble link en développement…)";
     const att = el("linkroomAttente");
     if (att) att.removeAttribute("hidden");
   }
 
-  function afficherPhase2() {
+  function afficherPhase2(type) {
     cacherDefi();
     const lobby = el("linkroomLobby");
     if (lobby) lobby.setAttribute("hidden", "");
     const msg = el("linkroomAttenteMsg");
-    if (msg) msg.textContent = "🔗 Connexion établie ! (câble link en cours de développement…)";
+    const action = type === "echange" ? "l'échange" : "le combat";
+    if (msg) msg.textContent = "🔗 Connexion pour " + action + " établie ! (câble link en cours de développement…)";
     const att = el("linkroomAttente");
     if (att) att.removeAttribute("hidden");
   }
@@ -268,35 +280,15 @@
 
     if (btnAlea) btnAlea.addEventListener("click", combatAleatoire);
 
+    const btnEchange = el("linkroomBtnEchange");
+
     if (btnAmi && secAmis) btnAmi.addEventListener("click", () => {
-      const cache = secAmis.hasAttribute("hidden");
-      if (cache) { rafraichirAmis(); secAmis.removeAttribute("hidden"); }
-      else secAmis.setAttribute("hidden", "");
+      const dejaCombat = !secAmis.hasAttribute("hidden") && modeDefi === "combat";
+      modeDefi = "combat";
+      if (dejaCombat) { secAmis.setAttribute("hidden", ""); return; }
+      rafraichirAmis();
+      secAmis.removeAttribute("hidden");
     });
 
-    if (btnAnnuler) btnAnnuler.addEventListener("click", () => {
-      partir();
-      cacherLobby();
-      dansLinkRoom = false;  // force rechargement si le joueur revient dans la salle
-    });
-
-    if (btnAccepter) btnAccepter.addEventListener("click", accepterDefi);
-    if (btnRefuser)  btnRefuser.addEventListener("click", refuserDefi);
-
-    if (btnSaveMap) btnSaveMap.addEventListener("click", () => {
-      const pos = state.myPos;
-      if (!pos) {
-        btnSaveMap.textContent = "⚠️ Lance d'abord le jeu !";
-        setTimeout(() => { btnSaveMap.textContent = "📍 Enregistrer cette map"; }, 2000);
-        return;
-      }
-      sauveMap(pos.g, pos.m);
-      btnSaveMap.textContent = "✅ Map " + pos.g + "." + pos.m + " enregistrée";
-      setTimeout(() => { btnSaveMap.textContent = "📍 Enregistrer cette map"; }, 3000);
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", initUI);
-
-  window.Valdoria.linkroom = { connectDb, check, definitTag, sauveMap };
-})(window);
+    if (btnEchange && secAmis) btnEchange.addEventListener("click", () => {
+      const dejaEchange = !secAmis.hasAttribute("hidden") && modeDe
