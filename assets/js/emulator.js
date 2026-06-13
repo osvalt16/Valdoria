@@ -192,7 +192,6 @@
     applyPendingSave();
     state.myPos = null;
     for (const id of Object.keys(state.joueurs)) state.joueurs[id].visible = false;
-    $("pauseBtn").textContent = "Pause";
     gba.runStable();
     if (options.persist !== false)
       persistCurrentSave("Sauvegarde .sav importée. Elle remplace le slot local de cette ROM.", "import");
@@ -444,3 +443,4 @@
     downloadSave
   };
 })(window);
+                                         
