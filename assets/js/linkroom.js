@@ -340,6 +340,7 @@
     const btnAccepter = el("linkroomBtnAccepter");
     const btnRefuser  = el("linkroomBtnRefuser");
     const btnSaveMap  = el("linkroomBtnSaveMap");
+    const btnSaveMap2 = el("linkroomBtnSaveMap2");
 
     if (btnAlea) btnAlea.addEventListener("click", combatAleatoire);
 
@@ -385,9 +386,26 @@
       setTimeout(() => { btnSaveMap.textContent = "📍 Enregistrer cette map"; }, 3000);
     });
 
-    // Afficher le panneau config seulement si aucune map n'est encore enregistrée
+    // btnSaveMap2 : même logique que btnSaveMap (bouton dans l'action bar)
+    if (btnSaveMap2) {
+      btnSaveMap2.addEventListener("click", () => {
+        const pos = state.myPos;
+        if (!pos) return;
+        sauveMap(pos.g, pos.m);
+        btnSaveMap2.setAttribute("hidden", "");
+        if (btnSaveMap) btnSaveMap.textContent = "✅ Map " + pos.g + "." + pos.m + " enregistrée";
+        setTimeout(() => {
+          if (btnSaveMap) btnSaveMap.textContent = "📍 Enregistrer cette map";
+        }, 3000);
+      });
+    }
+
+    // Afficher les boutons config seulement si aucune map n'est encore enregistrée
     const cfg = el("linkroomConfigPanel");
-    if (cfg && !mapLinkRoom) cfg.removeAttribute("hidden");
+    if (!mapLinkRoom) {
+      if (cfg) cfg.removeAttribute("hidden");
+      if (btnSaveMap2) btnSaveMap2.removeAttribute("hidden");
+    }
   }
 
   document.addEventListener("DOMContentLoaded", initUI);
