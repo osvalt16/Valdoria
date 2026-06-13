@@ -235,7 +235,6 @@ body.is-playing main {
 body.is-playing #play {
   flex:1; min-height:0; display:flex; flex-direction:column; gap:8px; overflow:hidden; }
 body.is-playing .mobile-hud { display:flex; }
-body.is-playing #screenWrap { flex:0 0 auto; width:100%; max-height:45vh; aspect-ratio:3/2; }
 body.is-playing #friendInfo { flex:0 0 auto; margin:0; font-size:.82rem; min-height:1em; }
 body.is-playing #tchat {
   flex:1; min-height:0; margin:0;
@@ -282,6 +281,8 @@ body.is-playing .mobile-drawer-head { display:flex; }
     border-width:8px;
     border-radius:12px;
   }
+  body.is-playing #screenZone { flex-direction:column; }
+  body.is-playing #screenSidebar { flex-direction:row; flex-wrap:wrap; }
   body.is-playing #friendInfo {
     min-height:1.1em;
     margin:4px 0;
