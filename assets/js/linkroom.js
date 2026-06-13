@@ -379,8 +379,15 @@
       }
       sauveMap(pos.g, pos.m);
       btnSaveMap.textContent = "✅ Map " + pos.g + "." + pos.m + " enregistrée";
+      // Map enregistrée : plus besoin du panneau config
+      const cfg = el("linkroomConfigPanel");
+      if (cfg) cfg.setAttribute("hidden", "");
       setTimeout(() => { btnSaveMap.textContent = "📍 Enregistrer cette map"; }, 3000);
     });
+
+    // Afficher le panneau config seulement si aucune map n'est encore enregistrée
+    const cfg = el("linkroomConfigPanel");
+    if (cfg && !mapLinkRoom) cfg.removeAttribute("hidden");
   }
 
   document.addEventListener("DOMContentLoaded", initUI);
