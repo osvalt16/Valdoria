@@ -45,8 +45,12 @@
     ctx.imageSmoothingEnabled = false;
 
     function draw() {
+      // Taille de cellule dynamique : image divisée en 3 cols × 4 lignes
+      const cw = im.naturalWidth  / 3;
+      const ch = im.naturalHeight / 4;
+      // Frame idle (colonne 1), direction bas (ligne 0)
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(im, PRV_SX, PRV_SY, CELL_W, CELL_H, 0, 0, PRV_W, PRV_H);
+      ctx.drawImage(im, cw, 0, cw, ch, 0, 0, PRV_W, PRV_H);
     }
 
     if (im.complete && im.naturalWidth) draw();
@@ -111,12 +115,4 @@
     if (ingameListe) {
       construireGrille(ingameListe, actuel, id => {
         const setup = document.getElementById("persoListeSetup");
-        if (setup) construireGrille(setup, id, null);
-      });
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", init);
-
-  window.Valdoria.character = { init, chargeSprite };
-})(window);
+   

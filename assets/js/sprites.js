@@ -61,11 +61,9 @@
     ctx.ellipse(x + TILE / 2, y + TILE - 3, 10, 3, 0, 0, Math.PI * 2);
     ctx.fill();
 
+    // Taille de cellule dynamique : image divisée en 3 cols × 4 lignes
+    const cw = im.naturalWidth  / 3;
+    const ch = im.naturalHeight / 4;
     const dx = x + TILE / 2 - DRAW_W / 2;
     const dy = y + TILE - FEET;
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(im, frame * CELL_W, row * CELL_H, CELL_W, CELL_H, dx, dy, DRAW_W, DRAW_H);
-  }
-
-  window.Valdoria.sprites = { draw };
-})(window);
