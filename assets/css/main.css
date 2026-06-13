@@ -435,7 +435,14 @@ body.is-playing .mobile-drawer-head { display:flex; }
     border-width:8px;
     border-radius:12px;
   }
-  body.is-playing #screenZone { flex-direction:column; }
+  body.is-playing #screenZone {
+    flex:0 0 auto !important;   /* annule le 65vh desktop */
+    flex-direction:column;
+  }
+  /* annule max-height:65vh du desktop pour le screenWrap */
+  body.is-playing #screenZone #screenWrap {
+    max-height:min(calc(100dvh - 450px), 36dvh);
+  }
   body.is-playing #screenSidebar { display:none; }
   body.is-playing #friendInfo {
     min-height:0;
