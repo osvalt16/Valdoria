@@ -350,7 +350,7 @@ body.is-playing .mobile-drawer-head { display:flex; }
     border-radius:12px;
   }
   body.is-playing #screenZone { flex-direction:column; }
-  body.is-playing #screenSidebar { flex-direction:row; flex-wrap:wrap; }
+  body.is-playing #screenSidebar { display:none !important; }
   body.is-playing #friendInfo {
     min-height:1.1em;
     margin:4px 0;
